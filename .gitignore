@@ -54,3 +54,4 @@ captures/
 *.ipr
 *.iws
 
+gradle.properties
