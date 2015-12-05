@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/detail_trailer_name"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:drawableLeft="@drawable/ic_play_arrow_black_48dp"
+    android:gravity="center_vertical"
+    android:text="@string/detail_default_link_text" />

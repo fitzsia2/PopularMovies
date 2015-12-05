@@ -1,0 +1,142 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/detail_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:contentDescription="@string/detail_title_content_description_text"
+    android:fillViewport="false"
+    tools:context=".MainActivity.DetailFragment">
+
+    <LinearLayout
+        android:id="@+id/detail_movie_information"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/detail_fragment_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:maxLines="2"
+            android:paddingBottom="24dp"
+            android:paddingLeft="8dp"
+            android:paddingTop="24dp"
+            android:singleLine="false"
+            android:text="@string/default_title_text"
+            android:textColor="@color/colorTextIcons"
+            android:textSize="42sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingBottom="8dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:weightSum="2">
+
+                <ImageView
+                    android:id="@+id/detail_fragment_poster_image_view"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:adjustViewBounds="true"
+                    android:minHeight="@dimen/detail_poster_minimum_height"
+                    android:paddingBottom="32dp"
+                    android:paddingLeft="8dp"
+                    android:contentDescription="@string/content_description_movie_poster"
+                    android:paddingRight="32dp"
+                    android:scaleType="centerCrop" />
+
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingLeft="16dp">
+
+                    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/detail_fragment_year_text_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="8dp"
+                        android:singleLine="true"
+                        android:text="@string/default_year_text"
+                        android:textColor="@color/colorPrimaryText"
+                        android:textSize="24sp" />
+
+                    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/detail_fragment_movie_length_text_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="8dp"
+                        android:singleLine="true"
+                        android:text="@string/default_length_text"
+                        android:textColor="@color/colorPrimaryText"
+                        android:textSize="24sp"
+                        android:textStyle="italic" />
+
+                    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/detail_fragment_rating_text_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="8dp"
+                        android:singleLine="true"
+                        android:text="@string/default_rating_text"
+                        android:textColor="@color/colorPrimaryText"
+                        android:textSize="18sp" />
+
+                    <Button xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/detail_fragment_favorite_button"
+                        android:layout_width="128sp"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorLightPrimary"
+                        android:paddingBottom="8dp"
+                        android:text="@string/add_favorite_button_text"
+                        android:textAllCaps="true"
+                        android:textColor="@color/colorPrimaryText"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/detail_fragment_overview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/default_overview_text"
+                android:textColor="@color/colorPrimaryText"
+                android:textSize="18sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/colorDivider" />
+        </LinearLayout>
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/detail_fragment_trailers"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/detail_trailer_header_text"
+                android:textSize="24sp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
