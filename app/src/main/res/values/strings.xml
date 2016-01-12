@@ -4,7 +4,6 @@
     <string name="test2_string">Test 2</string>
     <string name="action_settings">Settings</string>
     <string name="action_sort_by">Sort By</string>
-    <string name="empty_text_message">"Oops, there's nothing here!"</string>
 
     <string name="poster_width_92">w92</string>
     <string name="poster_width_154">w154</string>
@@ -13,17 +12,9 @@
     <string name="poster_width_780">w780</string>
     <string name="poster_width_original">original</string>
 
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-
-    <string name="default_year_text">Release Year</string>
-    <string name="default_overview_text">Movie Overview</string>
-    <string name="default_title_text">Movie Title</string>
-    <string name="default_length_text">Length</string>
-    <string name="default_rating_text">Rating</string>
     <string name="add_favorite_button_text">Mark as favorite</string>
     <string name="remove_favorite_button_text">Remove from favorites</string>
     <string name="detail_title_content_description_text">Movie Title</string>
-    <string name="detail_vote_average_div_10_text">/10</string>
     <string name="detail_trailer_header_text">Trailers:</string>
     <string name="detail_default_link_text"><![CDATA[<Trailer link here>]]></string>
 
@@ -47,5 +38,8 @@
     <string name="pref_sort_by_user_rated">User Rated</string>
     <string name="pref_sort_by_default">Most Popular</string>
     <string name="content_description_movie_poster">Movie Poster</string>
+    <string name="review_author_alt_text_string">User: </string>
+    <string name="detail_review_header_text">Reviews:</string>
+    <string name="title_activity_detail">Details</string>
 
 </resources>

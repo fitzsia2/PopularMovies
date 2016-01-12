@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/movie_review_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="16dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- AUTHOR HEADER -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:fontFamily="sans-serif-light"
+            android:paddingRight="8dp"
+            android:text="@string/review_author_alt_text_string"
+            android:textAppearance="?android:textAppearanceMedium" />
+
+        <!-- AUTHOR -->
+        <TextView
+            android:id="@+id/detail_view_author_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:textAppearance="?android:textAppearanceMedium"
+            tools:text="Gabe Newell" />
+
+    </LinearLayout>
+
+    <!-- REVIEW -->
+    <TextView
+        android:id="@+id/movie_review_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="In Stage 2, you will go one step further and allow the user to view movie trailers, read reviews, and select favorites." />
+
+</LinearLayout>

@@ -1,6 +1,7 @@
 package com.afitzwa.android.popularmovies;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -17,6 +18,8 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
     private int mMovieDbId;
+    private static View mFragmentView;
+    private static Context mContext;
 
     public DetailFragment() {
         // Required empty public constructor
@@ -53,9 +56,12 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreateView()");
         // Inflate the layout for this fragment
-        View mFragmentView = inflater.inflate(R.layout.fragment_detail, container, false);
+        mFragmentView = inflater.inflate(R.layout.fragment_detail, container, false);
+
         mFragmentView.findViewById(R.id.detail_fragment_favorite_button).setOnClickListener(this);
-        FetchMovieDetailsTask fetchMovieDetailsTask = new FetchMovieDetailsTask(getContext(), mFragmentView);
+
+        mContext = getContext();
+        FetchMovieDetailsTask fetchMovieDetailsTask = new FetchMovieDetailsTask(mContext, mFragmentView);
         fetchMovieDetailsTask.execute(mMovieDbId);
 
         return mFragmentView;
@@ -95,7 +101,8 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
     }
 
     // Called on wide screen devices
-    public void updateDetailView(int position) {
-        int mCurrentPosition = position;
+    public void updateDetailView(int movieDbId) {
+        FetchMovieDetailsTask fetchMovieDetailsTask = new FetchMovieDetailsTask(mContext, mFragmentView);
+        fetchMovieDetailsTask.execute(movieDbId);
     }
 }

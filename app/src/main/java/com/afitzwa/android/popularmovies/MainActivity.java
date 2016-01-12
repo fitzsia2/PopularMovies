@@ -1,72 +1,83 @@
 package com.afitzwa.android.popularmovies;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.GridView;
 
 public class MainActivity extends AppCompatActivity
         implements MoviesFragment.OnMovieSelectedListener {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    private MoviesFragment mMoviesFragment = null;
-    private DetailFragment mDetailFragment = null;
+    private boolean mTwoPane;
+
+    private static MoviesFragment mMoviesFragment = null;
+    private static DetailFragment mDetailFragment = null;
+
+    private boolean mIsDetailVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         PreferenceManager.setDefaultValues(this, R.xml.pref_movies, false);
+
+        // Our XML will inflate the fragment_posters into our main activity
         setContentView(R.layout.activity_main);
 
-        // Check whether the activity is using the layout version with
-        // the activity_main_frame FrameLayout. If so, we must add the first fragment
-        if (findViewById(R.id.activity_main_frame) != null) {
+        // Find the Movies fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        mMoviesFragment = (MoviesFragment) fragmentManager.findFragmentById(R.id.fragment_posters);
+        mMoviesFragment.setOnMovieSelectedListener(this);
 
-            // However, if we're being restored from a previous state,
+        // If we find the movie_details_container in our view, we're running in a two-pane mode
+        if (findViewById(R.id.movie_details_container) != null) {
+            mTwoPane = true;
+
+            // If we're being restored from a previous state,
             // then we don't need to do anything and should return or else
             // we could end up with overlapping fragments.
-            if (savedInstanceState != null) {
+            if (savedInstanceState != null && mDetailFragment != null) {
                 return;
             }
 
-            // Create the main activity fragment
-            mMoviesFragment = new MoviesFragment();
-            mMoviesFragment.setOnMovieSelectedListener(this);
+            // Create the detail fragment
+            mDetailFragment = new DetailFragment();
 
             // Start the fragment transaction and add it to the view
-            FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction
-                    .add(R.id.activity_main_frame, mMoviesFragment)
+                    .add(R.id.movie_details_container, mDetailFragment)
                     .commit();
+        } else {
+            mTwoPane = false;
         }
+        getSupportActionBar().setElevation(0f);
     }
 
     /**
-     * Starts the detail fragment view, or updates it on wider screen devices.
+     * Starts the detail activity, or update the detail fragment on wider screen devices.
      *
      * @param movieDbId Movie Id from themoviedb.org.
      */
     public void onMovieSelected(int movieDbId) {
         Log.v(LOG_TAG, "onMovieSelected");
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        mDetailFragment = (DetailFragment) fragmentManager.findFragmentById(R.id.detail_fragment);
-
-        if (mDetailFragment != null) {
+        if (mTwoPane) {
+            if (!mIsDetailVisible) {
+                // Bring it into visibility
+                findViewById(R.id.movie_details_container).setVisibility(View.VISIBLE);
+                GridView gridView = (GridView) findViewById(android.R.id.list);
+                gridView.setNumColumns(3);
+            }
             mDetailFragment.updateDetailView(movieDbId);
         } else {
-            // Start the fragment transaction and add it to the view
-            mDetailFragment = DetailFragment.newInstance(movieDbId);
-            Bundle bundle = new Bundle();
-            bundle.putInt(DetailFragment.MOVIE_DB_ID, movieDbId);
-            mDetailFragment.setArguments(bundle);
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.activity_main_frame, mDetailFragment)
-                    .addToBackStack("main")
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                    .commit();
+            Intent intent = new Intent(this, DetailActivity.class)
+                    .putExtra(DetailFragment.MOVIE_DB_ID, movieDbId);
+            startActivity(intent);
         }
     }
 }

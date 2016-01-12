@@ -29,9 +29,9 @@ import java.util.List;
 
 /**
  * Created by AndrewF on 11/13/2015.
- * <p/>
+ * <p>
  * Handles querying themoviedb.org for information related to a single movie.
- * <p/>
+ * <p>
  * Specifically gets the runtime and trailer links.
  */
 class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
@@ -45,6 +45,11 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
         String name;
     }
 
+    private class Review {
+        String author;
+        String review;
+    }
+
     /**
      * Contains all the information needed by the task for a given movie.
      */
@@ -56,6 +61,7 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
         String overview;
         String posterUrl;
         List<Trailer> trailers;
+        List<Review> reviews;
     }
 
     private Context mContext;
@@ -112,15 +118,14 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
         // Creates a TextView for each trailer
         // Get the layout we want to load our views into
         LinearLayout ll = (LinearLayout) mRootView.findViewById(R.id.detail_fragment_trailers);
-
         for (int ii = 0; ii < mMovieDetails.trailers.size(); ii++) {
             final String URL = mMovieDetails.trailers.get(ii).url;
             // Add the view
-            TextView txt = (TextView) View.inflate(mContext, R.layout.trailer_link_view, null);
-            txt.setText(mMovieDetails.trailers.get(ii).name);
+            TextView trailer = (TextView) View.inflate(mContext, R.layout.trailer_link_view, null);
+            trailer.setText(mMovieDetails.trailers.get(ii).name);
 
             // Set the onClick Listener to pull up the Youtube links
-            txt.setOnClickListener(new View.OnClickListener() {
+            trailer.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     Uri builtUri = Uri.parse(URL)
                             .buildUpon()
@@ -135,12 +140,25 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
                     }
                 }
             });
-            ll.addView(txt);
+            ll.addView(trailer);
         }
 
-        Log.v(LOG_TAG, "Done executing");
+        // Creates a TextView for each review
+        // Get the layout we want to load our views into
+        ll = (LinearLayout) mRootView.findViewById(R.id.detail_fragment_reviews);
+        for (int ii = 0; ii < mMovieDetails.reviews.size(); ii++) {
+            Review review = mMovieDetails.reviews.get(ii);
+            LinearLayout reviewLayout = (LinearLayout) View.inflate(mContext, R.layout.review_view, null);
+            ((TextView) reviewLayout.findViewById(R.id.detail_view_author_text_view)).setText(review.author);
+            ((TextView) reviewLayout.findViewById(R.id.movie_review_text_view)).setText(review.review);
+            ll.addView(reviewLayout);
+        }
+        mRootView.scrollTo(0, 0);
     }
 
+    /**
+     * Sets the view's text and images.
+     */
     private void setDetailsView() {
         TextView detail_title = (TextView) mRootView.findViewById(R.id.detail_fragment_title);
         ImageView detail_poster = (ImageView) mRootView.findViewById(R.id.detail_fragment_poster_image_view);
@@ -174,14 +192,14 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
         String returnValue = "";
         try {
             final String apiString = "http://api.themoviedb.org/3/movie/";
-            final String ADD_TRAILERS = "&append_to_response=trailers";
+            final String ADD_TRAILERS_REVIEWS = "&append_to_response=trailers,reviews";
             final String APP_ID = "api_key";
 
             Uri builtUri = Uri.parse(apiString).buildUpon()
                     .appendEncodedPath("" + movieId)
                     .appendQueryParameter(APP_ID, BuildConfig.OPEN_WEATHER_MAP_API_KEY)
                     .build();
-            URL url = new URL(builtUri.toString() + ADD_TRAILERS);
+            URL url = new URL(builtUri.toString() + ADD_TRAILERS_REVIEWS);
             // Create the request to OpenWeatherMap, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -228,13 +246,30 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
             movieDetails.releaseDate = movieDetailsJson.getString("release_date");
             movieDetails.runtime = movieDetailsJson.getString("runtime") + "min";
             movieDetails.overview = movieDetailsJson.getString("overview");
-            movieDetails.rating = movieDetailsJson.getString("vote_average")
-                    + mContext.getResources().getString(R.string.detail_vote_average_div_10_text);
+            movieDetails.rating = movieDetailsJson.getString("vote_average") + "/10";
             movieDetails.trailers = getMovieTrailers(movieDetailsJson.getJSONObject("trailers"));
+            movieDetails.reviews = getMovieReviews(movieDetailsJson.getJSONObject("reviews"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return movieDetails;
+    }
+
+    private List<Review> getMovieReviews(JSONObject reviewsJson) {
+        List<Review> reviews = new ArrayList<>();
+        try {
+            JSONArray results = reviewsJson.getJSONArray("results");
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject result = (JSONObject) results.get(i);
+                Review review = new Review();
+                review.author = result.getString("author");
+                review.review = result.getString("content");
+                reviews.add(review);
+            }
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+        }
+        return reviews;
     }
 
     private List<Trailer> getMovieTrailers(JSONObject trailersJson) {
@@ -259,11 +294,7 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
                     trailerUrls.add(ii, trailer);
                 }
             }
-        } catch (
-                JSONException ex
-                )
-
-        {
+        } catch (JSONException ex) {
             ex.printStackTrace();
         }
 

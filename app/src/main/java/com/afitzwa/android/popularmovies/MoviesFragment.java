@@ -32,12 +32,13 @@ public class MoviesFragment extends Fragment
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p/>
+     * <p>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
     public OnMovieSelectedListener mMovieSelectedListener = null;
+
     /**
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.

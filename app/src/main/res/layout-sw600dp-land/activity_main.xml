@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    android:divider="?android:attr/dividerHorizontal"
+    android:orientation="horizontal"
+    tools:context=".MainActivity">
+
+    <fragment
+        android:id="@+id/fragment_posters"
+        android:name="com.afitzwa.android.popularmovies.MoviesFragment"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        tools:layout="@android:layout/list_content" />
+
+    <FrameLayout
+        android:id="@+id/movie_details_container"
+        android:name="com.afitzwa.android.popularmovies.DetailFragment"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:visibility="gone"
+        tools:context=".DetailActivity"
+        tools:layout="@layout/fragment_detail"
+        tools:visibility="visible" />
+
+</LinearLayout>
