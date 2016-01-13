@@ -70,7 +70,8 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         Log.v(LOG_TAG, "onClick(): " + mMovieDbId);
-/*        Button button = (Button) v;
+        /* // TODO: Add functionality for saving movies
+        Button button = (Button) v;
         List<Movie> favoriteMovies = Movie.find(Movie.class, "MOVIE_DB_ID = ?", "" + mMovieDbId);
         favoriteMovies.size();
 
@@ -97,7 +98,8 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
             } else {
                 button.setBackgroundColor(getResources().getColor(R.color.colorLightPrimary));
             }
-        }*/
+        }
+        */
     }
 
     // Called on wide screen devices

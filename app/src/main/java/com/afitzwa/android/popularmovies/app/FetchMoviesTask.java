@@ -1,10 +1,8 @@
 package com.afitzwa.android.popularmovies;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -100,7 +98,8 @@ class FetchMoviesTask extends AsyncTask<Integer, Void, JSONArray> {
                     .appendQueryParameter(APP_ID, BuildConfig.OPEN_WEATHER_MAP_API_KEY)
                     .appendQueryParameter(PAGE_NUM, "" + page);
             String sortCriteria = "";
-            String sortBy = GetSortByOption();
+            Utility utility = new Utility();
+            String sortBy = utility.GetSortByOption(mContext);
             if (sortBy.equalsIgnoreCase("most popular")) {
                 sortCriteria = "popularity.desc";
             } else if (sortBy.equalsIgnoreCase("alphabetical")) {
@@ -147,10 +146,5 @@ class FetchMoviesTask extends AsyncTask<Integer, Void, JSONArray> {
         }
 
         return returnValue;
-    }
-
-    private String GetSortByOption() {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-        return sharedPrefs.getString(mContext.getString(R.string.pref_sort_by_key), mContext.getString(R.string.pref_sort_by_default));
     }
 }
