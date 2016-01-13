@@ -78,6 +78,8 @@ class FetchMoviesTask extends AsyncTask<Integer, Void, JSONArray> {
                     continue;
                 }
 
+                // TODO Check the movie id in a content provider
+
                 posterAdapter.add(poster);
             } catch (JSONException e) {
                 e.printStackTrace();

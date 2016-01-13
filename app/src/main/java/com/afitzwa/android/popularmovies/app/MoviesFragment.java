@@ -130,6 +130,10 @@ public class MoviesFragment extends Fragment
             startActivity(settingsIntent);
             return true;
         }
+
+        /* TODO Add a button for viewing favorites
+           This will launch a favorites activity+fragment
+           */
         return super.onOptionsItemSelected(item);
     }
 
