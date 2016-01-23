@@ -1,4 +1,4 @@
-package com.afitzwa.android.popularmovies;
+package com.afitzwa.android.popularmovies.app;
 
 import android.content.Context;
 import android.net.Uri;
@@ -97,7 +97,7 @@ class FetchMoviesTask extends AsyncTask<Integer, Void, JSONArray> {
             final String PAGE_NUM = "page";
 
             Uri.Builder uriBuilder = Uri.parse(apiString).buildUpon()
-                    .appendQueryParameter(APP_ID, BuildConfig.OPEN_WEATHER_MAP_API_KEY)
+                    .appendQueryParameter(APP_ID, BuildConfig.THE_MOVIE_DB_API_KEY)
                     .appendQueryParameter(PAGE_NUM, "" + page);
             String sortCriteria = "";
             Utility utility = new Utility();
@@ -113,7 +113,7 @@ class FetchMoviesTask extends AsyncTask<Integer, Void, JSONArray> {
             uriBuilder.appendQueryParameter("sort_by", sortCriteria);
             Uri builtUri = uriBuilder.build();
             URL url = new URL(builtUri.toString());
-            // Create the request to OpenWeatherMap, and open the connection
+            // Create the request to TheMovieDb.org, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();

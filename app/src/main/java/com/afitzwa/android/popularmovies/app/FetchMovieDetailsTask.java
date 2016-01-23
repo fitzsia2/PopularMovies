@@ -1,4 +1,4 @@
-package com.afitzwa.android.popularmovies;
+package com.afitzwa.android.popularmovies.app;
 
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -197,10 +197,10 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
 
             Uri builtUri = Uri.parse(apiString).buildUpon()
                     .appendEncodedPath("" + movieId)
-                    .appendQueryParameter(APP_ID, BuildConfig.OPEN_WEATHER_MAP_API_KEY)
+                    .appendQueryParameter(APP_ID, BuildConfig.THE_MOVIE_DB_API_KEY)
                     .build();
             URL url = new URL(builtUri.toString() + ADD_TRAILERS_REVIEWS);
-            // Create the request to OpenWeatherMap, and open the connection
+            // Create the request to themoviedb.org, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();

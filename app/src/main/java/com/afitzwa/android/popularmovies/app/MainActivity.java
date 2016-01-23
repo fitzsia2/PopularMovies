@@ -1,4 +1,4 @@
-package com.afitzwa.android.popularmovies;
+package com.afitzwa.android.popularmovies.app;
 
 import android.content.Intent;
 import android.os.Bundle;

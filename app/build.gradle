@@ -4,15 +4,8 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
 
-    packagingOptions {
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/NOTICE.txt'
-    }
-
     defaultConfig {
-        applicationId "com.afitzwa.android.popularmovies"
+        applicationId "com.afitzwa.android.popularmovies.app"
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 1
@@ -25,7 +18,7 @@ android {
         }
     }
     buildTypes.each {
-        it.buildConfigField 'String', 'OPEN_WEATHER_MAP_API_KEY', MyOpenWeatherMapApiKey
+        it.buildConfigField 'String', 'THE_MOVIE_DB_API_KEY', MyMovieDbApiKey
     }
 }
 
@@ -35,7 +28,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.1.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.github.satyan:sugar:1.3'
 }
 
 repositories {

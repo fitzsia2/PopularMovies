@@ -1,4 +1,4 @@
-package com.afitzwa.android.popularmovies;
+package com.afitzwa.android.popularmovies.app;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
