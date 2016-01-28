@@ -16,7 +16,6 @@ import com.afitzwa.android.popularmovies.app.data.MovieContract.ReviewEntry;
 import com.afitzwa.android.popularmovies.app.data.MovieContract.TrailerEntry;
 
 import junit.framework.Assert;
-import junit.framework.Test;
 
 
 /**
@@ -257,7 +256,7 @@ public class TestProvider extends AndroidTestCase {
         // Make sure we get the correct cursor out of the database
         TestUtilities.validateCursor("testBasicMovieQueries, movie query", movieCursor, testValues);
 
-        if ( Build.VERSION.SDK_INT >= 19 ) {
+        if (Build.VERSION.SDK_INT >= 19) {
             assertEquals("Error: Movie Query did not properly set NotificationUri",
                     movieCursor.getNotificationUri(), MovieEntry.CONTENT_URI);
         }

@@ -33,10 +33,15 @@ public class MovieContract {
         public static final String COLUMN_YEAR = "year";
         public static final String COLUMN_LENGTH = "length";
         public static final String COLUMN_RATING = "rating";
+        public static final String COLUMN_FAVORITE = "favorite";
         public static final String COLUMN_DESCRIPTION = "overview";
 
         public static Uri buildMovieUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildMovieUriWithMovie(long movieDbId) {
+            return ContentUris.withAppendedId(CONTENT_URI, movieDbId);
         }
 
         public static Uri buildMovieTrailers(Long movieId) {

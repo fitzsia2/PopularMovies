@@ -13,8 +13,8 @@ import com.afitzwa.android.popularmovies.app.data.MovieContract.ReviewEntry;
  */
 public class MovieDbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 6;
-    static final String DATABASE_NAME = "movie.db";
+    private static final int DATABASE_VERSION = 8;
+    public static final String DATABASE_NAME = "movie.db";
 
     public MovieDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -28,8 +28,9 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_MOVIE_DB_ID + " BIGINT UNIQUE NOT NULL, " +
                 MovieEntry.COLUMN_TITLE +       " TEXT NOT NULL, " +
                 MovieEntry.COLUMN_YEAR +        " INTEGER NOT NULL, " +
-                MovieEntry.COLUMN_LENGTH +      " INTEGER NOT NULL, " +
+                MovieEntry.COLUMN_LENGTH +      " INTEGER, " +
                 MovieEntry.COLUMN_RATING +      " TEXT NOT NULL, " +
+                MovieEntry.COLUMN_FAVORITE +    " BOOLEAN, " +
                 MovieEntry.COLUMN_DESCRIPTION + " TEXT NOT NULL" +
                 " );";
 

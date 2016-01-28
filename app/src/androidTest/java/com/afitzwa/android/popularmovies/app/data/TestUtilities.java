@@ -57,6 +57,7 @@ public class TestUtilities extends AndroidTestCase {
         movieValues.put(MovieContract.MovieEntry.COLUMN_LENGTH, 81);
         movieValues.put(MovieContract.MovieEntry.COLUMN_DESCRIPTION, "She talks to someone. Someone meets somebody.");
         movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_URL, "www.google.com");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, "www.google.com");
         movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, "2");
         return movieValues;
     }

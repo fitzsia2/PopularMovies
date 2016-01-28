@@ -1,8 +1,10 @@
 package com.afitzwa.android.popularmovies.app;
 
 import android.content.ActivityNotFoundException;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -11,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.afitzwa.android.popularmovies.app.data.MovieContract;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -26,6 +29,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
+
 
 /**
  * Created by AndrewF on 11/13/2015.
@@ -34,8 +39,14 @@ import java.util.List;
  * <p>
  * Specifically gets the runtime and trailer links.
  */
-class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
+class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> {
     private final String LOG_TAG = FetchMovieDetailsTask.class.getSimpleName();
+    private static final String[] MOVIES_COLUMNS = {
+            MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry._ID,
+            MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID
+    };
+    static final int COL_MOVIE_ID = 0;
+    static final int COL_MOVIE_DB_ID = 1;
 
     /**
      * Contains a name and url for a given trailer
@@ -67,6 +78,7 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
     private Context mContext;
     private View mRootView;
     private MovieDetails mMovieDetails;
+    private long mMovieDbId;
 
     public FetchMovieDetailsTask(Context context, View rootView) {
         mContext = context;
@@ -79,19 +91,84 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
      * @return a JSONObject returned by themoviedb.org's API.
      */
     @Override
-    protected JSONObject doInBackground(Integer... params) {
+    protected JSONObject doInBackground(Long... params) {
         Log.v(LOG_TAG, "Querying MovieDb: " + params[0]);
+        mMovieDbId = params[0];
 
         JSONObject movieJsonObject = null;
 
         // Retrieve the specific movie JSON from themoviedb.org's Db
-        for (Integer param : params) {
+        for (Long param : params) {
             try {
                 String movieJsonString = getMovieJson(param);
                 movieJsonObject = new JSONObject(movieJsonString);
             } catch (JSONException ex) {
                 Log.e(LOG_TAG, "JSON Error: ", ex);
             }
+        }
+
+        mMovieDetails = getMovieDetails(movieJsonObject);
+
+        // Update the movie entry with the length
+        ContentValues cv = new ContentValues();
+        cv.put(MovieContract.MovieEntry.COLUMN_LENGTH, mMovieDetails.runtime);
+        int count = mContext.getContentResolver().update(
+                MovieContract.MovieEntry.CONTENT_URI,
+                cv,
+                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = ?",
+                new String[]{Long.toString(mMovieDbId)});
+        if ((count == -1)) throw new AssertionError();
+
+        // Get the row of Id of our movie for the trailers table and reviews table
+        Cursor c = mContext.getContentResolver().query(
+                MovieContract.MovieEntry.CONTENT_URI,
+                MOVIES_COLUMNS,
+                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = " + mMovieDbId,
+                null,
+                null
+        );
+
+        if(c == null)
+            return null;
+
+        c.moveToFirst();
+        int rowId = c.getInt(COL_MOVIE_ID);
+        c.close();
+
+        Log.v(LOG_TAG, "Query returned " + c.getCount() + " rows");
+
+        // Save the trailers
+        Vector<ContentValues> trailerCCV = new Vector<>(mMovieDetails.trailers.size());
+        for (int ii = 0; ii < mMovieDetails.trailers.size(); ii++) {
+            final String URL = mMovieDetails.trailers.get(ii).url;
+            final String NAME = mMovieDetails.trailers.get(ii).name;
+
+            cv.clear();
+            cv.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, rowId);
+            cv.put(MovieContract.TrailerEntry.COLUMN_TRAILER_URL, URL);
+            cv.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, NAME);
+            trailerCCV.add(cv);
+        }
+        if (trailerCCV.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[trailerCCV.size()];
+            trailerCCV.toArray(cvArray);
+            mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, cvArray);
+        }
+
+        // Save the reviews
+        Vector<ContentValues> reviewCCV = new Vector<>(mMovieDetails.reviews.size());
+        for (int ii = 0; ii < mMovieDetails.reviews.size(); ii++) {
+            Review review = mMovieDetails.reviews.get(ii);
+            cv.clear();
+            cv.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, rowId);
+            cv.put(MovieContract.ReviewEntry.COLUMN_USER, review.author);
+            cv.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, review.review);
+            reviewCCV.add(cv);
+        }
+        if (reviewCCV.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[reviewCCV.size()];
+            reviewCCV.toArray(cvArray);
+            mContext.getContentResolver().bulkInsert(MovieContract.ReviewEntry.CONTENT_URI, cvArray);
         }
 
         // Return the JSON
@@ -109,76 +186,137 @@ class FetchMovieDetailsTask extends AsyncTask<Integer, Void, JSONObject> {
             Log.e(LOG_TAG, "Error: Could not get any results");
             return;
         }
+        mContext.getContentResolver().notifyChange(MovieContract.MovieEntry.CONTENT_URI, null);
+        mContext.getContentResolver().notifyChange(MovieContract.TrailerEntry.CONTENT_URI, null);
+        mContext.getContentResolver().notifyChange(MovieContract.ReviewEntry.CONTENT_URI, null);
 
-        // Get all the information out of the JSON
-        mMovieDetails = getMovieDetails(result);
+//        // Get all the information out of the JSON
+//        mMovieDetails = getMovieDetails(result);
+//
+//        // Update the movie entry with the length
+//        ContentValues cv = new ContentValues();
+//        cv.put(MovieContract.MovieEntry.COLUMN_LENGTH, mMovieDetails.runtime);
+//        int count = mContext.getContentResolver().update(
+//                MovieContract.MovieEntry.CONTENT_URI,
+//                cv,
+//                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = ",
+//                new String[]{Long.toString(mMovieDbId)});
+//        if ((count == -1)) throw new AssertionError();
+//
+//        // Get the row of Id of our movie for the trailers table and reviews table
+//        Cursor c = mContext.getContentResolver().query(
+//                MovieContract.MovieEntry.CONTENT_URI,
+//                MOVIES_COLUMNS,
+//                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = " + mMovieDbId,
+//                null,
+//                null
+//                );
+//        assert c != null && c.moveToFirst();
+//        int rowId = c.getInt(COL_MOVIE_ID);
+//
+//        Vector<ContentValues> trailerCCV = new Vector<>(mMovieDetails.trailers.size());
+//
+//        // Creates a TextView for each trailer
+//        // Get the layout we want to load our views into
+//        LinearLayout ll = (LinearLayout) mRootView.findViewById(R.id.detail_fragment_trailers);
+//        for (int ii = 0; ii < mMovieDetails.trailers.size(); ii++) {
+//            final String URL = mMovieDetails.trailers.get(ii).url;
+//            final String NAME = mMovieDetails.trailers.get(ii).name;
+//
+//            cv.clear();
+//            cv.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, rowId);
+//            cv.put(MovieContract.TrailerEntry.COLUMN_TRAILER_URL, URL);
+//            cv.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, NAME);
+//            trailerCCV.add(cv);
 
-        setDetailsView();
-
-        // Creates a TextView for each trailer
-        // Get the layout we want to load our views into
-        LinearLayout ll = (LinearLayout) mRootView.findViewById(R.id.detail_fragment_trailers);
-        for (int ii = 0; ii < mMovieDetails.trailers.size(); ii++) {
-            final String URL = mMovieDetails.trailers.get(ii).url;
-            // Add the view
-            TextView trailer = (TextView) View.inflate(mContext, R.layout.trailer_link_view, null);
-            trailer.setText(mMovieDetails.trailers.get(ii).name);
-
-            // Set the onClick Listener to pull up the Youtube links
-            trailer.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    Uri builtUri = Uri.parse(URL)
-                            .buildUpon()
-                            .build();
-                    try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, builtUri);
-                        mContext.startActivity(intent);
-                    } catch (ActivityNotFoundException ex) {
-                        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW,
-                                builtUri);
-                        mContext.startActivity(youtubeIntent);
-                    }
-                }
-            });
-            ll.addView(trailer);
-        }
-
-        // Creates a TextView for each review
-        // Get the layout we want to load our views into
-        ll = (LinearLayout) mRootView.findViewById(R.id.detail_fragment_reviews);
-        for (int ii = 0; ii < mMovieDetails.reviews.size(); ii++) {
-            Review review = mMovieDetails.reviews.get(ii);
-            LinearLayout reviewLayout = (LinearLayout) View.inflate(mContext, R.layout.review_view, null);
-            ((TextView) reviewLayout.findViewById(R.id.detail_view_author_text_view)).setText(review.author);
-            ((TextView) reviewLayout.findViewById(R.id.movie_review_text_view)).setText(review.review);
-            ll.addView(reviewLayout);
-        }
-        mRootView.scrollTo(0, 0);
+//            // Add the view
+//            TextView trailer = (TextView) View.inflate(mContext, R.layout.trailer_link_view, null);
+//            trailer.setText(name);
+//
+//            // Set the onClick Listener to pull up the Youtube links
+//            trailer.setOnClickListener(new View.OnClickListener() {
+//                public void onClick(View v) {
+//                    Uri builtUri = Uri.parse(URL)
+//                            .buildUpon()
+//                            .build();
+//                    try {
+//                        Intent intent = new Intent(Intent.ACTION_VIEW, builtUri);
+//                        mContext.startActivity(intent);
+//                    } catch (ActivityNotFoundException ex) {
+//                        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW,
+//                                builtUri);
+//                        mContext.startActivity(youtubeIntent);
+//                    }
+//                }
+//            });
+//            ll.addView(trailer);
+//        }
+//        if (trailerCCV.size() > 0) {
+//            ContentValues[] cvArray = new ContentValues[trailerCCV.size()];
+//            trailerCCV.toArray(cvArray);
+//            mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, cvArray);
+//        }
+//
+//
+//        Vector<ContentValues> reviewCCV = new Vector<>(mMovieDetails.reviews.size());
+//
+//        // Creates a TextView for each review
+//        // Get the layout we want to load our views into
+//        ll = (LinearLayout) mRootView.findViewById(R.id.detail_fragment_reviews);
+//        for (int ii = 0; ii < mMovieDetails.reviews.size(); ii++) {
+//            Review review = mMovieDetails.reviews.get(ii);
+//            cv.clear();
+//            cv.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, rowId);
+//            cv.put(MovieContract.ReviewEntry.COLUMN_USER, review.author);
+//            cv.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, review.review);
+//            reviewCCV.add(cv);
+//
+//            LinearLayout reviewLayout = (LinearLayout) View.inflate(mContext, R.layout.review_view, null);
+//            ((TextView) reviewLayout.findViewById(R.id.detail_view_author_text_view)).setText(review.author);
+//            ((TextView) reviewLayout.findViewById(R.id.movie_review_text_view)).setText(review.review);
+//            ll.addView(reviewLayout);
+//        }
+//        if (reviewCCV.size() > 0) {
+//            ContentValues[] cvArray = new ContentValues[reviewCCV.size()];
+//            reviewCCV.toArray(cvArray);
+//            mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, cvArray);
+//        }
+//
+//        mRootView.scrollTo(0, 0);
     }
 
     /**
      * Sets the view's text and images.
      */
     private void setDetailsView() {
-        TextView detail_title = (TextView) mRootView.findViewById(R.id.detail_fragment_title);
-        ImageView detail_poster = (ImageView) mRootView.findViewById(R.id.detail_fragment_poster_image_view);
-        TextView detail_year = (TextView) mRootView.findViewById(R.id.detail_fragment_year_text_view);
-        TextView detail_length = (TextView) mRootView.findViewById(R.id.detail_fragment_movie_length_text_view);
-        TextView detail_rating = (TextView) mRootView.findViewById(R.id.detail_fragment_rating_text_view);
-        TextView detail_overview = (TextView) mRootView.findViewById(R.id.detail_fragment_overview);
+        ContentValues cv = new ContentValues();
+        cv.put(MovieContract.MovieEntry.COLUMN_LENGTH, mMovieDetails.runtime);
+        int count = mContext.getContentResolver().update(
+                MovieContract.MovieEntry.CONTENT_URI,
+                cv,
+                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = ",
+                new String[]{Long.toString(mMovieDbId)});
+        if ((count == -1)) throw new AssertionError();
 
-        if (mMovieDetails.title != null)
-            detail_title.setText(mMovieDetails.title);
-        if (mMovieDetails.posterUrl != null)
-            Picasso.with(mContext).load(mMovieDetails.posterUrl).into(detail_poster);
-        int strLen = mMovieDetails.releaseDate.length();
-        if (strLen >= 4)
-            detail_year.setText(mMovieDetails.releaseDate.substring(0, 4));
-        else
-            detail_year.setText(mMovieDetails.releaseDate.substring(0, strLen));
-        detail_length.setText(mMovieDetails.runtime);
-        detail_rating.setText(mMovieDetails.rating);
-        detail_overview.setText(mMovieDetails.overview);
+//        TextView detail_title = (TextView) mRootView.findViewById(R.id.detail_fragment_title);
+//        ImageView detail_poster = (ImageView) mRootView.findViewById(R.id.detail_fragment_poster_image_view);
+//        TextView detail_year = (TextView) mRootView.findViewById(R.id.detail_fragment_year_text_view);
+//        TextView detail_length = (TextView) mRootView.findViewById(R.id.detail_fragment_movie_length_text_view);
+//        TextView detail_rating = (TextView) mRootView.findViewById(R.id.detail_fragment_rating_text_view);
+//        TextView detail_overview = (TextView) mRootView.findViewById(R.id.detail_fragment_overview);
+//
+//        if (mMovieDetails.title != null)
+//            detail_title.setText(mMovieDetails.title);
+//        if (mMovieDetails.posterUrl != null)
+//            Picasso.with(mContext).load(mMovieDetails.posterUrl).into(detail_poster);
+//        int strLen = mMovieDetails.releaseDate.length();
+//        if (strLen >= 4)
+//            detail_year.setText(mMovieDetails.releaseDate.substring(0, 4));
+//        else
+//            detail_year.setText(mMovieDetails.releaseDate.substring(0, strLen));
+//        detail_length.setText(mMovieDetails.runtime);
+//        detail_rating.setText(mMovieDetails.rating);
+//        detail_overview.setText(mMovieDetails.overview);
     }
 
     /**

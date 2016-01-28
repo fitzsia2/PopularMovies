@@ -1,14 +1,20 @@
 package com.afitzwa.android.popularmovies.app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.GridView;
+
+import com.afitzwa.android.popularmovies.app.data.MovieDbHelper;
+
+import junit.framework.Assert;
 
 public class MainActivity extends AppCompatActivity
         implements MoviesFragment.OnMovieSelectedListener {
@@ -24,6 +30,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        deleteDatabase(MovieDbHelper.DATABASE_NAME);
         PreferenceManager.setDefaultValues(this, R.xml.pref_movies, false);
 
         // Our XML will inflate the fragment_posters into our main activity
@@ -56,16 +63,17 @@ public class MainActivity extends AppCompatActivity
         } else {
             mTwoPane = false;
         }
-        getSupportActionBar().setElevation(0f);
+        ActionBar ab = getSupportActionBar();
+        Assert.assertNotNull(ab);
+        ab.setElevation(0f);
     }
 
     /**
      * Starts the detail activity, or update the detail fragment on wider screen devices.
      *
-     * @param movieDbId Movie Id from themoviedb.org.
      */
-    public void onMovieSelected(int movieDbId) {
-        Log.v(LOG_TAG, "onMovieSelected");
+    public void onMovieSelected(Uri uri) {
+        Log.v(LOG_TAG, "onMovieSelected::" + uri.toString());
         if (mTwoPane) {
             if (!mIsDetailVisible) {
                 // Bring it into visibility
@@ -73,11 +81,17 @@ public class MainActivity extends AppCompatActivity
                 GridView gridView = (GridView) findViewById(android.R.id.list);
                 gridView.setNumColumns(3);
             }
-            mDetailFragment.updateDetailView(movieDbId);
+            mDetailFragment.updateDetailView(uri);
         } else {
             Intent intent = new Intent(this, DetailActivity.class)
-                    .putExtra(DetailFragment.MOVIE_DB_ID, movieDbId);
+                    .putExtra(DetailFragment.MOVIE_URI, uri);
             startActivity(intent);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.v(LOG_TAG, "onDestroy()");
     }
 }
