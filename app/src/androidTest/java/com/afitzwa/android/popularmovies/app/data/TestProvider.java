@@ -143,7 +143,7 @@ public class TestProvider extends AndroidTestCase {
     }
 
     public void testInsertReadProvider() {
-        ContentValues testValues = TestUtilities.createMovieValues();
+        ContentValues testValues = TestUtilities.createMovieValues1();
 
         TestUtilities.TestContentObserver tco = TestUtilities.TestContentObserver.getTestContentObserver();
         mContext.getContentResolver().registerContentObserver(MovieEntry.CONTENT_URI, true, tco);
@@ -241,20 +241,24 @@ public class TestProvider extends AndroidTestCase {
         MovieDbHelper dbHelper = new MovieDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        ContentValues testValues = TestUtilities.createMovieValues();
-        long movieRowId = TestUtilities.insertTestMovieValues(mContext);
+        ContentValues testValues = TestUtilities.createMovieValues1();
+        ContentValues testValues2 = TestUtilities.createMovieValues2();
+
+        long movie1RowId = TestUtilities.insertTestMovieValues(mContext);
+        Uri movie2Uri = mContext.getContentResolver().insert(MovieEntry.CONTENT_URI, testValues2);
 
         // Test the basic content provider query
         Cursor movieCursor = mContext.getContentResolver().query(
                 MovieEntry.CONTENT_URI,
                 null,
-                null,
+                MovieEntry.COLUMN_MOVIE_DB_ID + " = " + testValues2.getAsString(
+                        MovieEntry.COLUMN_MOVIE_DB_ID),
                 null,
                 null
         );
 
         // Make sure we get the correct cursor out of the database
-        TestUtilities.validateCursor("testBasicMovieQueries, movie query", movieCursor, testValues);
+        TestUtilities.validateCursor("testBasicMovieQueries, movie query", movieCursor, testValues2);
 
         if (Build.VERSION.SDK_INT >= 19) {
             assertEquals("Error: Movie Query did not properly set NotificationUri",
@@ -267,7 +271,7 @@ public class TestProvider extends AndroidTestCase {
         MovieDbHelper dbHelper = new MovieDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        ContentValues testValues = TestUtilities.createMovieValues();
+        ContentValues testValues = TestUtilities.createMovieValues1();
         long movieRowId = TestUtilities.insertTestMovieValues(mContext);
 
         ContentValues trailerValues = TestUtilities.createTrailerValues(movieRowId);
@@ -295,7 +299,7 @@ public class TestProvider extends AndroidTestCase {
         MovieDbHelper dbHelper = new MovieDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        ContentValues testValues = TestUtilities.createMovieValues();
+        ContentValues testValues = TestUtilities.createMovieValues1();
         long movieRowId = TestUtilities.insertTestMovieValues(mContext);
 
         ContentValues reviewValues = TestUtilities.createReviewValues(movieRowId);
@@ -319,7 +323,7 @@ public class TestProvider extends AndroidTestCase {
     }
 
     public void testUpdateMovie() {
-        ContentValues values = TestUtilities.createMovieValues();
+        ContentValues values = TestUtilities.createMovieValues1();
         Uri movieUri = mContext.getContentResolver().insert(MovieEntry.CONTENT_URI, values);
         long movieRowId = ContentUris.parseId(movieUri);
         assertTrue(movieRowId != -1);

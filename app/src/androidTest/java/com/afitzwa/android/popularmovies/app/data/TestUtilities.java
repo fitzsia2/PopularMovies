@@ -49,7 +49,7 @@ public class TestUtilities extends AndroidTestCase {
         // END Taken from Udacity's Sunshine //
      ---------------------------------------------*/
 
-    static ContentValues createMovieValues() {
+    static ContentValues createMovieValues1() {
         ContentValues movieValues = new ContentValues();
         movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID, TEST_MOVIE);
         movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, "My favorite Movie");
@@ -57,8 +57,21 @@ public class TestUtilities extends AndroidTestCase {
         movieValues.put(MovieContract.MovieEntry.COLUMN_LENGTH, 81);
         movieValues.put(MovieContract.MovieEntry.COLUMN_DESCRIPTION, "She talks to someone. Someone meets somebody.");
         movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_URL, "www.google.com");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, "www.google.com");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, false);
         movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, "2");
+        return movieValues;
+    }
+
+    static ContentValues createMovieValues2() {
+        ContentValues movieValues = new ContentValues();
+        movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID, TEST_MOVIE + 5);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, "My 2nd favorite Movie");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_YEAR, 2005);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_LENGTH, 90);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_DESCRIPTION, "He talks to someone. Somebody meets someone.");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_URL, "www.bing.com");
+        movieValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, false);
+        movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, "3");
         return movieValues;
     }
 
@@ -81,7 +94,7 @@ public class TestUtilities extends AndroidTestCase {
     static long insertTestMovieValues(Context context) {
         MovieDbHelper dbHelper = new MovieDbHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues testValues = createMovieValues();
+        ContentValues testValues = createMovieValues1();
 
         long movieRowId = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, testValues);
         assertTrue("Error: Failed to insert test movie data", movieRowId != -1);
