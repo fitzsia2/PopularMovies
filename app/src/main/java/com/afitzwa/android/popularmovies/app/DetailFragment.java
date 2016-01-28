@@ -61,22 +61,27 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
     private static final int TRAILERS_LOADER = 1;
     private static final String[] TRAILER_COLUMNS = {
             MovieContract.TrailerEntry.TABLE_NAME + "." + MovieContract.TrailerEntry._ID,
+            MovieContract.TrailerEntry.COLUMN_MOVIE_KEY,
             MovieContract.TrailerEntry.COLUMN_TRAILER_URL,
             MovieContract.TrailerEntry.COLUMN_DESCRIPTION
     };
     static final int COL_TRAILER_ID = 0;
-    static final int COL_TRAILER_URL = 1;
-    static final int COL_TRAILER_DESCRIPTION = 2;
+    static final int COL_TRAILER_MOVIE_ID = 1;
+    static final int COL_TRAILER_URL = 2;
+    static final int COL_TRAILER_DESCRIPTION = 3;
 
     private static final int REVIEWS_LOADER = 2;
     private static final String[] REVIEWS_COLUMNS = {
             MovieContract.ReviewEntry.TABLE_NAME + "." + MovieContract.ReviewEntry._ID,
+            MovieContract.ReviewEntry.COLUMN_MOVIE_KEY,
             MovieContract.ReviewEntry.COLUMN_USER,
             MovieContract.ReviewEntry.COLUMN_DESCRIPTION
     };
     static final int COL_REVIEW_ID = 0;
-    static final int COL_REVIEW_USER = 1;
-    static final int COL_REVIEW_DESCRIPTION = 2;
+    static final int COL_REVIEW_MOVIE_KEY = 1;
+    static final int COL_REVIEW_USER = 2;
+    static final int COL_REVIEW_DESCRIPTION = 3;
+
     private FetchMovieDetailsTask mFetchMovieDetailsTask;
 
     private TextView mTitleView;
@@ -123,12 +128,18 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
         mFragmentView.findViewById(R.id.detail_fragment_favorite_button).setOnClickListener(this);
 
         mContext = getContext();
-        mFetchMovieDetailsTask = new FetchMovieDetailsTask(mContext, mFragmentView);
+        mFetchMovieDetailsTask = new FetchMovieDetailsTask(mContext);
         if (mUri != null) {
-            Cursor c = mContext.getContentResolver().query(mUri, MOVIES_COLUMNS, null, null, null);
+            Cursor c = mContext.getContentResolver().query(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    MOVIES_COLUMNS,
+                    MovieContract.MovieEntry._ID + " = " + MovieContract.MovieEntry.getMovieIdFromUri(mUri),
+                    null,
+                    null);
             assert c != null;
             if (c.moveToFirst()) {
                 mFetchMovieDetailsTask.execute(c.getLong(COL_MOVIE_DB_ID));
+                Log.v(LOG_TAG, "Fetching details for movieDbId=" + c.getLong(COL_MOVIE_DB_ID));
             }
         }
 
@@ -173,9 +184,18 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         int loaderId = loader.getId();
+
+        int movieId = Integer.valueOf(MovieContract.MovieEntry.getMovieIdFromUri(mUri));
+        String[] colNames = data.getColumnNames();
+        for (String colName : colNames) {
+            Log.v(LOG_TAG, colName);
+        }
+
         switch (loaderId) {
             case MOVIES_LOADER:
-                data.moveToFirst();
+
+                while (data.moveToNext() && data.getInt(COL_MOVIE_ID) != movieId) {
+                }
 
                 // Set the title
                 mTitleView.setText(data.getString(COL_MOVIE_TITLE));
@@ -197,7 +217,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
                 break;
 
             case TRAILERS_LOADER:
-                while (data.moveToNext()) {
+                while (data.moveToNext() && (data.getInt(COL_TRAILER_MOVIE_ID) == movieId)) {
                     final String URL = data.getString(COL_TRAILER_URL);
                     final String name = data.getString(COL_TRAILER_DESCRIPTION);
 
@@ -225,7 +245,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
                 }
                 break;
             case REVIEWS_LOADER:
-                while (data.moveToNext()) {
+                while (data.moveToNext() && (data.getInt(COL_REVIEW_MOVIE_KEY) == movieId)) {
                     LinearLayout reviewLayout = (LinearLayout) View.inflate(mContext, R.layout.review_view, null);
                     ((TextView) reviewLayout.findViewById(R.id.detail_view_author_text_view)).setText(data.getString(COL_REVIEW_USER));
                     ((TextView) reviewLayout.findViewById(R.id.movie_review_text_view)).setText(data.getString(COL_REVIEW_DESCRIPTION));

@@ -116,8 +116,10 @@ public class MoviesFragment extends Fragment
                 // if it cannot seek to that position.
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
+                    cursor.moveToPosition(position);
                     ((OnMovieSelectedListener) getActivity())
-                            .onMovieSelected(MovieContract.MovieEntry.buildMovieUriWithMovie(cursor.getLong(COL_MOVIE_DB_ID)));
+                            .onMovieSelected(MovieContract.MovieEntry.buildMovieUriWithMovie(cursor.getLong(COL_ID)));
+                    Log.v(LOG_TAG, "Clicked movie with movieDbId=" + cursor.getLong(COL_ID));
                 }
                 mPosition = position;
             }

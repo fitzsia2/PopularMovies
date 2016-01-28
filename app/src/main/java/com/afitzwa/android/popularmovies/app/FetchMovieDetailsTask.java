@@ -76,13 +76,11 @@ class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> {
     }
 
     private Context mContext;
-    private View mRootView;
     private MovieDetails mMovieDetails;
     private long mMovieDbId;
 
-    public FetchMovieDetailsTask(Context context, View rootView) {
+    public FetchMovieDetailsTask(Context context) {
         mContext = context;
-        mRootView = rootView;
     }
 
     /**

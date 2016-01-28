@@ -206,7 +206,6 @@ class FetchMoviesTask extends AsyncTask<Integer, Void, JSONArray> {
 
         if (c.moveToFirst()) {
             rowId = c.getLong(COL_MOVIE_ID);
-            Log.v(LOG_TAG, "Entry: " + c.getLong(COL_MOVIE_DB_ID) + " param: " + movieDbId);
         } else {
             // Save the new movie
             ContentValues movieValues = new ContentValues();
