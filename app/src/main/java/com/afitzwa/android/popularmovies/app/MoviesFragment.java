@@ -115,11 +115,11 @@ public class MoviesFragment extends Fragment
                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
                 // if it cannot seek to that position.
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                if (cursor != null) {
+                  if (cursor != null) {
                     cursor.moveToPosition(position);
                     ((OnMovieSelectedListener) getActivity())
                             .onMovieSelected(MovieContract.MovieEntry.buildMovieUriWithMovie(cursor.getLong(COL_ID)));
-                    Log.v(LOG_TAG, "Clicked movie with movieDbId=" + cursor.getLong(COL_ID));
+                    Log.v(LOG_TAG, "Clicked movie with _id=" + cursor.getLong(COL_ID));
                 }
                 mPosition = position;
             }
@@ -136,7 +136,6 @@ public class MoviesFragment extends Fragment
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        Log.v(LOG_TAG, "onAttach()");
         try {
             mMovieSelectedListener = (OnMovieSelectedListener) context;
         } catch (ClassCastException e) {
@@ -151,9 +150,8 @@ public class MoviesFragment extends Fragment
         // If favorites => populate views using a loader
         // else => need to load from themoviedb.org
         if (mReloadOnResume) {
-            Log.v(LOG_TAG, "onResume()::Reloading mPosterAdapter");
             mPosterAdapter.swapCursor(null);
-            FetchMoviesTask moviesTask = new FetchMoviesTask(getContext(), mPosterAdapter);
+            FetchMoviesTask moviesTask = new FetchMoviesTask(getContext());
             moviesTask.execute(1);
         }
     }
@@ -182,7 +180,6 @@ public class MoviesFragment extends Fragment
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.v(LOG_TAG, "onDetach()");
         mMovieSelectedListener = null;
     }
 
@@ -198,7 +195,6 @@ public class MoviesFragment extends Fragment
         Interface methods
      -------------------------------------------*/
     public void setOnMovieSelectedListener(OnMovieSelectedListener listener) {
-        Log.v(LOG_TAG, "setOnMovieSelectedListener()");
         mMovieSelectedListener = listener;
     }
 
@@ -211,7 +207,6 @@ public class MoviesFragment extends Fragment
      -------------------------------------------*/
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.v(LOG_TAG, "onCreateLoader()");
         return new CursorLoader(
                 getActivity(),
                 MovieContract.MovieEntry.CONTENT_URI,
@@ -223,7 +218,6 @@ public class MoviesFragment extends Fragment
 
     @Override
     public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor data) {
-        Log.v(LOG_TAG, "onLoadFinished()");
         mPosterAdapter.swapCursor(data);
         if (mPosition != ListView.INVALID_POSITION)
             mListView.smoothScrollToPosition(mPosition);
@@ -231,7 +225,6 @@ public class MoviesFragment extends Fragment
 
     @Override
     public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
-        Log.v(LOG_TAG, "onLoaderReset()");
         mPosterAdapter.swapCursor(null);
     }
 }

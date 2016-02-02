@@ -19,6 +19,7 @@ import junit.framework.Assert;
 public class MainActivity extends AppCompatActivity
         implements MoviesFragment.OnMovieSelectedListener {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
 
     private boolean mTwoPane;
 
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity
             // Start the fragment transaction and add it to the view
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction
-                    .add(R.id.movie_details_container, mDetailFragment)
+                    .add(R.id.movie_details_container, mDetailFragment, DETAILFRAGMENT_TAG)
                     .commit();
         } else {
             mTwoPane = false;
@@ -70,23 +71,30 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Starts the detail activity, or update the detail fragment on wider screen devices.
-     *
      */
     public void onMovieSelected(Uri uri) {
         Log.v(LOG_TAG, "onMovieSelected::" + uri.toString());
         if (mTwoPane) {
-            if (!mIsDetailVisible) {
-                // Bring it into visibility
-                findViewById(R.id.movie_details_container).setVisibility(View.VISIBLE);
-                GridView gridView = (GridView) findViewById(android.R.id.list);
-                gridView.setNumColumns(3);
-            }
-            mDetailFragment.updateDetailView(uri);
+            // Bring it into visibility
+            findViewById(R.id.movie_details_container).setVisibility(View.VISIBLE);
+
+            Bundle args = new Bundle();
+            args.putParcelable(DetailFragment.MOVIE_URI, uri);
+            DetailFragment df = new DetailFragment();
+            df.setArguments(args);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.movie_details_container, df, DETAILFRAGMENT_TAG)
+                    .commit();
+
+            // Change number of columns in main view
+            GridView gridView = (GridView) findViewById(android.R.id.list);
+            gridView.setNumColumns(3);
         } else {
             Intent intent = new Intent(this, DetailActivity.class)
                     .putExtra(DetailFragment.MOVIE_URI, uri);
             startActivity(intent);
         }
+
     }
 
     @Override

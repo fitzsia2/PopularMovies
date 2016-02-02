@@ -5,15 +5,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.afitzwa.android.popularmovies.app.data.MovieContract.MovieEntry;
-import com.afitzwa.android.popularmovies.app.data.MovieContract.TrailerEntry;
 import com.afitzwa.android.popularmovies.app.data.MovieContract.ReviewEntry;
+import com.afitzwa.android.popularmovies.app.data.MovieContract.TrailerEntry;
 
 /**
  * Makes a local database for our movie data.
  */
 public class MovieDbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 10;
     public static final String DATABASE_NAME = "movie.db";
 
     public MovieDbHelper(Context context) {
@@ -23,21 +23,21 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieContract.MovieEntry.TABLE_NAME + " (" +
-                MovieEntry._ID +                " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                MovieEntry.COLUMN_POSTER_URL +  " TEXT NOT NULL, " +
+                MovieEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                MovieEntry.COLUMN_POSTER_URL + " TEXT NOT NULL, " +
                 MovieEntry.COLUMN_MOVIE_DB_ID + " BIGINT UNIQUE NOT NULL, " +
-                MovieEntry.COLUMN_TITLE +       " TEXT NOT NULL, " +
-                MovieEntry.COLUMN_YEAR +        " INTEGER NOT NULL, " +
-                MovieEntry.COLUMN_LENGTH +      " INTEGER, " +
-                MovieEntry.COLUMN_RATING +      " TEXT NOT NULL, " +
-                MovieEntry.COLUMN_FAVORITE +    " BOOLEAN, " +
+                MovieEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
+                MovieEntry.COLUMN_YEAR + " INTEGER NOT NULL, " +
+                MovieEntry.COLUMN_LENGTH + " INTEGER, " +
+                MovieEntry.COLUMN_RATING + " TEXT NOT NULL, " +
+                MovieEntry.COLUMN_FAVORITE + " INT, " +
                 MovieEntry.COLUMN_DESCRIPTION + " TEXT NOT NULL" +
                 " );";
 
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + TrailerEntry.TABLE_NAME + " (" +
-                TrailerEntry._ID                + " INTEGER PRIMARY KEY," +
-                TrailerEntry.COLUMN_MOVIE_KEY   + " BIGINT NOT NULL, " +
-                TrailerEntry.COLUMN_TRAILER_URL + " TEXT NOT NULL, " +
+                TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                TrailerEntry.COLUMN_MOVIE_KEY + " INTEGER NOT NULL, " +
+                TrailerEntry.COLUMN_TRAILER_URL + " TEXT UNIQUE NOT NULL, " +
                 TrailerEntry.COLUMN_DESCRIPTION + " TEXT NOT NULL, " +
 
                 " FOREIGN KEY (" + TrailerEntry.COLUMN_MOVIE_KEY + ") REFERENCES " +
@@ -45,10 +45,10 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 ");";
 
         final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " + ReviewEntry.TABLE_NAME + " (" +
-                ReviewEntry._ID                + " INTEGER PRIMARY KEY," +
-                ReviewEntry.COLUMN_MOVIE_KEY   + " BIGINT NOT NULL, " +
-                ReviewEntry.COLUMN_USER        + " TEXT NOT NULL, " +
-                ReviewEntry.COLUMN_DESCRIPTION + " TEXT NOT NULL" +
+                ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                ReviewEntry.COLUMN_MOVIE_KEY + " INTEGER NOT NULL, " +
+                ReviewEntry.COLUMN_USER + " TEXT NOT NULL, " +
+                ReviewEntry.COLUMN_DESCRIPTION + " TEXT UNIQUE NOT NULL" +
                 ");";
 
         db.execSQL(SQL_CREATE_MOVIE_TABLE);

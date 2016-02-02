@@ -13,7 +13,6 @@ import com.squareup.picasso.RequestCreator;
 
 
 public class PosterAdapter extends CursorAdapter {
-    public static final String LOG_TAG = PosterAdapter.class.getSimpleName();
 
     public PosterAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);

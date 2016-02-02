@@ -1,9 +1,7 @@
 package com.afitzwa.android.popularmovies.app;
 
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,8 +13,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.afitzwa.android.popularmovies.app.data.MovieContract;
@@ -33,10 +32,22 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
     public static final String LOAD_FAVORITES = "favorites flag";
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
+    private TrailersAdapter mTrailerAdapter;
+    private ReviewsAdapter mReviewAdapter;
+    private TextView mTitleTextView;
+    private ImageView mMovieImageView;
+    private TextView mYearTextView;
+    private TextView mMovieLengthView;
+    private TextView mMovieRatingView;
+    private TextView mOverviewTextView;
+    private Button mFavoriteButton;
+    private AbsListView mTrailerListView;
+    private AbsListView mReviewListView;
+
     private Uri mUri;
-    private boolean mLoadFavorites = false;
-    private static View mFragmentView;
-    private static Context mContext;
+
+    // TODO
+//    private boolean mLoadFavorites = false;
 
     private static final int MOVIES_LOADER = 0;
     private static final String[] MOVIES_COLUMNS = {
@@ -47,9 +58,9 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
             MovieContract.MovieEntry.COLUMN_LENGTH,
             MovieContract.MovieEntry.COLUMN_YEAR,
             MovieContract.MovieEntry.COLUMN_RATING,
-            MovieContract.MovieEntry.COLUMN_DESCRIPTION
+            MovieContract.MovieEntry.COLUMN_DESCRIPTION,
+            MovieContract.MovieEntry.COLUMN_FAVORITE
     };
-    static final int COL_MOVIE_ID = 0;
     static final int COL_MOVIE_DB_ID = 1;
     static final int COL_MOVIE_TITLE = 2;
     static final int COL_MOVIE_POSTER_URL = 3;
@@ -57,41 +68,27 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
     static final int COL_MOVIE_YEAR = 5;
     static final int COL_MOVIE_RATING = 6;
     static final int COL_MOVIE_DESCRIPTION = 7;
+    static final int COL_MOVIE_FAVORITE = 8;
 
     private static final int TRAILERS_LOADER = 1;
     private static final String[] TRAILER_COLUMNS = {
             MovieContract.TrailerEntry.TABLE_NAME + "." + MovieContract.TrailerEntry._ID,
-            MovieContract.TrailerEntry.COLUMN_MOVIE_KEY,
             MovieContract.TrailerEntry.COLUMN_TRAILER_URL,
             MovieContract.TrailerEntry.COLUMN_DESCRIPTION
     };
-    static final int COL_TRAILER_ID = 0;
-    static final int COL_TRAILER_MOVIE_ID = 1;
-    static final int COL_TRAILER_URL = 2;
-    static final int COL_TRAILER_DESCRIPTION = 3;
+    static final int COL_TRAILER_URL = 1;
+    static final int COL_TRAILER_DESCRIPTION = 2;
 
     private static final int REVIEWS_LOADER = 2;
     private static final String[] REVIEWS_COLUMNS = {
             MovieContract.ReviewEntry.TABLE_NAME + "." + MovieContract.ReviewEntry._ID,
-            MovieContract.ReviewEntry.COLUMN_MOVIE_KEY,
             MovieContract.ReviewEntry.COLUMN_USER,
             MovieContract.ReviewEntry.COLUMN_DESCRIPTION
     };
-    static final int COL_REVIEW_ID = 0;
-    static final int COL_REVIEW_MOVIE_KEY = 1;
-    static final int COL_REVIEW_USER = 2;
-    static final int COL_REVIEW_DESCRIPTION = 3;
+    static final int COL_REVIEW_USER = 1;
+    static final int COL_REVIEW_DESCRIPTION = 2;
 
     private FetchMovieDetailsTask mFetchMovieDetailsTask;
-
-    private TextView mTitleView;
-    private ImageView mMovieImageView;
-    private TextView mMovieYearView;
-    private TextView mMovieLengthView;
-    private TextView mMovieRatingView;
-    private TextView mMovieOverviewView;
-    private LinearLayout mTrailerLayout;
-    private LinearLayout mReviewLayout;
 
     public DetailFragment() {
         // Required empty public constructor
@@ -99,56 +96,63 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.v(LOG_TAG, "onCreate()");
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             // Get movie db Id from our arguments
             mUri = getArguments().getParcelable(MOVIE_URI);
-            mLoadFavorites = getArguments().getBoolean(LOAD_FAVORITES);
+//            mLoadFavorites = getArguments().getBoolean(LOAD_FAVORITES);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.v(LOG_TAG, "onCreateView()");
 
         // Inflate the layout for this fragment
-        mFragmentView = inflater.inflate(R.layout.fragment_detail, container, false);
-        mTitleView = (TextView) mFragmentView.findViewById(R.id.detail_fragment_title);
-        mMovieImageView = (ImageView) mFragmentView.findViewById(R.id.detail_fragment_poster_image_view);
-        mMovieYearView = (TextView) mFragmentView.findViewById(R.id.detail_fragment_year_text_view);
-        mMovieLengthView = (TextView) mFragmentView.findViewById(R.id.detail_fragment_movie_length_text_view);
-        mMovieRatingView = (TextView) mFragmentView.findViewById(R.id.detail_fragment_rating_text_view);
-        mMovieOverviewView = (TextView) mFragmentView.findViewById(R.id.detail_fragment_overview);
-        mTrailerLayout = (LinearLayout) mFragmentView.findViewById(R.id.detail_fragment_trailers);
-        mReviewLayout = (LinearLayout) mFragmentView.findViewById(R.id.detail_fragment_reviews);
+        View fragmentView = inflater.inflate(R.layout.fragment_detail, container, false);
+        fragmentView.setVerticalScrollbarPosition(0);
+
+        // Get all the views
+        mTitleTextView = (TextView) fragmentView.findViewById(R.id.detail_fragment_title);
+        mMovieImageView = (ImageView) fragmentView.findViewById(R.id.detail_fragment_poster_image_view);
+        mYearTextView = (TextView) fragmentView.findViewById(R.id.detail_fragment_year_text_view);
+        mMovieLengthView = (TextView) fragmentView.findViewById(R.id.detail_fragment_movie_length_text_view);
+        mMovieRatingView = (TextView) fragmentView.findViewById(R.id.detail_fragment_rating_text_view);
+        mOverviewTextView = (TextView) fragmentView.findViewById(R.id.detail_fragment_overview);
+        mFavoriteButton = (Button) fragmentView.findViewById(R.id.detail_fragment_favorite_button);
+        mTrailerListView = (AbsListView) fragmentView.findViewById(R.id.trailers_list_view);
+        mReviewListView = (AbsListView) fragmentView.findViewById(R.id.reviews_list_view);
+
+        // These views are populated through our adapter
+        mTrailerAdapter = new TrailersAdapter(getContext(), null, 0);
+        mTrailerListView.setAdapter(mTrailerAdapter);
+        mReviewAdapter = new ReviewsAdapter(getContext(), null, 0);
+        mReviewListView.setAdapter(mReviewAdapter);
 
         // Setup our clickListener
-        mFragmentView.findViewById(R.id.detail_fragment_favorite_button).setOnClickListener(this);
+        fragmentView.findViewById(R.id.detail_fragment_favorite_button).setOnClickListener(this);
 
-        mContext = getContext();
-        mFetchMovieDetailsTask = new FetchMovieDetailsTask(mContext);
+        Context context = getContext();
+        mFetchMovieDetailsTask = new FetchMovieDetailsTask(context);
         if (mUri != null) {
-            Cursor c = mContext.getContentResolver().query(
+            Cursor c = context.getContentResolver().query(
                     MovieContract.MovieEntry.CONTENT_URI,
                     MOVIES_COLUMNS,
                     MovieContract.MovieEntry._ID + " = " + MovieContract.MovieEntry.getMovieIdFromUri(mUri),
                     null,
                     null);
             assert c != null;
-            if (c.moveToFirst()) {
+            if (c.moveToFirst())
                 mFetchMovieDetailsTask.execute(c.getLong(COL_MOVIE_DB_ID));
-                Log.v(LOG_TAG, "Fetching details for movieDbId=" + c.getLong(COL_MOVIE_DB_ID));
-            }
+                c.close();
         }
-
-        return mFragmentView;
+        return fragmentView;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.v(LOG_TAG, "Initializing loaders");
         getLoaderManager().initLoader(MOVIES_LOADER, null, this);
         getLoaderManager().initLoader(TRAILERS_LOADER, null, this);
         getLoaderManager().initLoader(REVIEWS_LOADER, null, this);
@@ -156,25 +160,65 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
 
     @Override
     public void onClick(View v) {
-        Log.v(LOG_TAG, "onClick(): " + mUri);
         //TODO: Add functionality for saving movies
+        Log.v(LOG_TAG, "Movie _id=" + MovieContract.MovieEntry.getMovieIdFromUri(mUri) + " added to favorites");
     }
 
     // Called on wide screen devices
     public void updateDetailView(Uri uri) {
-        Long movieDbId = Long.parseLong(uri.getQueryParameter(MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID));
-        mFetchMovieDetailsTask.execute(movieDbId);
+        mUri = uri;
+
+        Log.v(LOG_TAG, "Reinitializing loaders");
+        LoaderManager lm = getLoaderManager();
+        lm.initLoader(MOVIES_LOADER, null, this);
+        lm.initLoader(TRAILERS_LOADER, null, this);
+        lm.initLoader(REVIEWS_LOADER, null, this);
+
+        String row = MovieContract.MovieEntry.getMovieIdFromUri(uri);
+        Cursor c = getContext().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                MOVIES_COLUMNS,
+                MovieContract.MovieEntry._ID + " = " + row,
+                null,
+                null);
+        if (c != null && c.moveToFirst()) {
+            long movieDbId = c.getLong(COL_MOVIE_DB_ID);
+            c.close();
+            mFetchMovieDetailsTask = new FetchMovieDetailsTask(getContext());
+            mFetchMovieDetailsTask.execute(movieDbId);
+        }
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        if (mUri == null)
+            return null;
+
+        String rowId = MovieContract.MovieEntry.getMovieIdFromUri(mUri);
         switch (id) {
             case MOVIES_LOADER:
-                return new CursorLoader(getActivity(), mUri, MOVIES_COLUMNS, null, null, null);
+                Log.v(LOG_TAG, "Creating movies loader");
+                return new CursorLoader(getActivity(),
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        MOVIES_COLUMNS,
+                        MovieContract.MovieEntry._ID + " = " + rowId,
+                        null,
+                        null);
             case TRAILERS_LOADER:
-                return new CursorLoader(getActivity(), MovieContract.TrailerEntry.CONTENT_URI, TRAILER_COLUMNS, null, null, null);
+                Log.v(LOG_TAG, "Creating trailers loader");
+                return new CursorLoader(getActivity(),
+                        MovieContract.TrailerEntry.CONTENT_URI,
+                        TRAILER_COLUMNS,
+                        MovieContract.TrailerEntry.COLUMN_MOVIE_KEY + " = " + rowId,
+                        null,
+                        null);
             case REVIEWS_LOADER:
-                return new CursorLoader(getActivity(), MovieContract.ReviewEntry.CONTENT_URI, REVIEWS_COLUMNS, null, null, null);
+                Log.v(LOG_TAG, "Creating reviews loader");
+                return new CursorLoader(getActivity(),
+                        MovieContract.ReviewEntry.CONTENT_URI,
+                        REVIEWS_COLUMNS,
+                        MovieContract.ReviewEntry.COLUMN_MOVIE_KEY + " = " + rowId,
+                        null,
+                        null);
             default:
                 break;
         }
@@ -184,73 +228,18 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         int loaderId = loader.getId();
-
-        int movieId = Integer.valueOf(MovieContract.MovieEntry.getMovieIdFromUri(mUri));
-        String[] colNames = data.getColumnNames();
-        for (String colName : colNames) {
-            Log.v(LOG_TAG, colName);
-        }
-
         switch (loaderId) {
             case MOVIES_LOADER:
-
-                while (data.moveToNext() && data.getInt(COL_MOVIE_ID) != movieId) {
-                }
-
-                // Set the title
-                mTitleView.setText(data.getString(COL_MOVIE_TITLE));
-
-                // Set the poster/image
-                String posterUrlString = data.getString(COL_MOVIE_POSTER_URL);
-                RequestCreator requestCreator = Picasso.with(getActivity()).load(posterUrlString);
-                requestCreator.into(mMovieImageView);
-                mMovieImageView.setContentDescription(posterUrlString);
-
-                // Set the release date
-                mMovieLengthView.setText(String.valueOf(data.getInt(COL_MOVIE_LENGTH)));
-
-                // Set the description
-                mMovieOverviewView.setText(data.getString(COL_MOVIE_DESCRIPTION));
-
-                // Set the rating
-                mMovieRatingView.setText(data.getString(COL_MOVIE_RATING));
+                Log.v(LOG_TAG, "Loaded " + data.getCount() + " movies");
+                setDetails(data);
                 break;
-
             case TRAILERS_LOADER:
-                while (data.moveToNext() && (data.getInt(COL_TRAILER_MOVIE_ID) == movieId)) {
-                    final String URL = data.getString(COL_TRAILER_URL);
-                    final String name = data.getString(COL_TRAILER_DESCRIPTION);
-
-                    // Add the view
-                    TextView trailer = (TextView) View.inflate(mContext, R.layout.trailer_link_view, null);
-                    trailer.setText(name);
-
-                    // Set the onClick Listener to pull up the Youtube links
-                    trailer.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View v) {
-                            Uri builtUri = Uri.parse(URL)
-                                    .buildUpon()
-                                    .build();
-                            try {
-                                Intent intent = new Intent(Intent.ACTION_VIEW, builtUri);
-                                mContext.startActivity(intent);
-                            } catch (ActivityNotFoundException ex) {
-                                Intent youtubeIntent = new Intent(Intent.ACTION_VIEW,
-                                        builtUri);
-                                mContext.startActivity(youtubeIntent);
-                            }
-                        }
-                    });
-                    mTrailerLayout.addView(trailer);
-                }
+                Log.v(LOG_TAG, "Loaded " + data.getCount() + " trailers");
+                mTrailerAdapter.swapCursor(data);
                 break;
             case REVIEWS_LOADER:
-                while (data.moveToNext() && (data.getInt(COL_REVIEW_MOVIE_KEY) == movieId)) {
-                    LinearLayout reviewLayout = (LinearLayout) View.inflate(mContext, R.layout.review_view, null);
-                    ((TextView) reviewLayout.findViewById(R.id.detail_view_author_text_view)).setText(data.getString(COL_REVIEW_USER));
-                    ((TextView) reviewLayout.findViewById(R.id.movie_review_text_view)).setText(data.getString(COL_REVIEW_DESCRIPTION));
-                    mReviewLayout.addView(reviewLayout);
-                }
+                Log.v(LOG_TAG, "Loaded " + data.getCount() + " reviews");
+                mReviewAdapter.swapCursor(data);
                 break;
             default:
                 break;
@@ -259,6 +248,37 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        mTrailerAdapter.swapCursor(null);
+        mReviewAdapter.swapCursor(null);
+    }
 
+    private void setDetails(Cursor c) {
+        if (c.moveToFirst()) {
+            // Set the title
+            mTitleTextView.setText(c.getString(COL_MOVIE_TITLE));
+
+            // Set the poster/image
+            String posterUrlString = c.getString(COL_MOVIE_POSTER_URL);
+            RequestCreator requestCreator = Picasso.with(getActivity()).load(posterUrlString);
+            requestCreator.into(mMovieImageView);
+            mMovieImageView.setContentDescription(posterUrlString);
+
+            // Set the release date
+            mYearTextView.setText(String.valueOf(c.getInt(COL_MOVIE_YEAR)));
+
+            // Set the description
+            mOverviewTextView.setText(c.getString(COL_MOVIE_DESCRIPTION));
+
+            // Set the rating
+            mMovieRatingView.setText(c.getString(COL_MOVIE_RATING));
+
+            // Set the text of the favorites button
+            String buttonText = (c.getInt(COL_MOVIE_FAVORITE) > 0) ? "Mark as favorite" : "Remove from favorites";
+            mFavoriteButton.setText(buttonText);
+
+            // Set the length
+            final String lengthSuffix = "min";
+            mMovieLengthView.setText(String.valueOf(c.getInt(COL_MOVIE_LENGTH)) + lengthSuffix);
+        }
     }
 }

@@ -1,20 +1,13 @@
 package com.afitzwa.android.popularmovies.app;
 
-import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.afitzwa.android.popularmovies.app.data.MovieContract;
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -107,214 +100,94 @@ class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> {
 
         mMovieDetails = getMovieDetails(movieJsonObject);
 
-        // Update the movie entry with the length
-        ContentValues cv = new ContentValues();
-        cv.put(MovieContract.MovieEntry.COLUMN_LENGTH, mMovieDetails.runtime);
-        int count = mContext.getContentResolver().update(
-                MovieContract.MovieEntry.CONTENT_URI,
-                cv,
-                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = ?",
-                new String[]{Long.toString(mMovieDbId)});
-        if ((count == -1)) throw new AssertionError();
-
         // Get the row of Id of our movie for the trailers table and reviews table
-        Cursor c = mContext.getContentResolver().query(
+        Cursor moviesCursor = mContext.getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,
                 MOVIES_COLUMNS,
-                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = " + mMovieDbId,
-                null,
+                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = ?",
+                new String[]{mMovieDbId + ""},
                 null
         );
 
-        if(c == null)
-            return null;
+        if (moviesCursor == null || !moviesCursor.moveToFirst())
+            throw new AssertionError("Trying get details for a movie that does not already exist!");
 
-        c.moveToFirst();
-        int rowId = c.getInt(COL_MOVIE_ID);
-        c.close();
+        int rowId = moviesCursor.getInt(COL_MOVIE_ID);
+        moviesCursor.close();
 
-        Log.v(LOG_TAG, "Query returned " + c.getCount() + " rows");
-
-        // Save the trailers
-        Vector<ContentValues> trailerCCV = new Vector<>(mMovieDetails.trailers.size());
-        for (int ii = 0; ii < mMovieDetails.trailers.size(); ii++) {
-            final String URL = mMovieDetails.trailers.get(ii).url;
-            final String NAME = mMovieDetails.trailers.get(ii).name;
-
-            cv.clear();
-            cv.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, rowId);
-            cv.put(MovieContract.TrailerEntry.COLUMN_TRAILER_URL, URL);
-            cv.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, NAME);
-            trailerCCV.add(cv);
-        }
-        if (trailerCCV.size() > 0) {
-            ContentValues[] cvArray = new ContentValues[trailerCCV.size()];
-            trailerCCV.toArray(cvArray);
-            mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, cvArray);
-        }
-
-        // Save the reviews
-        Vector<ContentValues> reviewCCV = new Vector<>(mMovieDetails.reviews.size());
-        for (int ii = 0; ii < mMovieDetails.reviews.size(); ii++) {
-            Review review = mMovieDetails.reviews.get(ii);
-            cv.clear();
-            cv.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, rowId);
-            cv.put(MovieContract.ReviewEntry.COLUMN_USER, review.author);
-            cv.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, review.review);
-            reviewCCV.add(cv);
-        }
-        if (reviewCCV.size() > 0) {
-            ContentValues[] cvArray = new ContentValues[reviewCCV.size()];
-            reviewCCV.toArray(cvArray);
-            mContext.getContentResolver().bulkInsert(MovieContract.ReviewEntry.CONTENT_URI, cvArray);
-        }
-
-        // Return the JSON
-        return movieJsonObject;
-    }
-
-    /**
-     * Parses the JSON object for runtime and trailer links.
-     *
-     * @param result JSONObject containing
-     */
-    @Override
-    protected void onPostExecute(JSONObject result) {
-        if (result == null) {
-            Log.e(LOG_TAG, "Error: Could not get any results");
-            return;
-        }
-        mContext.getContentResolver().notifyChange(MovieContract.MovieEntry.CONTENT_URI, null);
-        mContext.getContentResolver().notifyChange(MovieContract.TrailerEntry.CONTENT_URI, null);
-        mContext.getContentResolver().notifyChange(MovieContract.ReviewEntry.CONTENT_URI, null);
-
-//        // Get all the information out of the JSON
-//        mMovieDetails = getMovieDetails(result);
-//
-//        // Update the movie entry with the length
-//        ContentValues cv = new ContentValues();
-//        cv.put(MovieContract.MovieEntry.COLUMN_LENGTH, mMovieDetails.runtime);
-//        int count = mContext.getContentResolver().update(
-//                MovieContract.MovieEntry.CONTENT_URI,
-//                cv,
-//                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = ",
-//                new String[]{Long.toString(mMovieDbId)});
-//        if ((count == -1)) throw new AssertionError();
-//
-//        // Get the row of Id of our movie for the trailers table and reviews table
-//        Cursor c = mContext.getContentResolver().query(
-//                MovieContract.MovieEntry.CONTENT_URI,
-//                MOVIES_COLUMNS,
-//                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = " + mMovieDbId,
-//                null,
-//                null
-//                );
-//        assert c != null && c.moveToFirst();
-//        int rowId = c.getInt(COL_MOVIE_ID);
-//
-//        Vector<ContentValues> trailerCCV = new Vector<>(mMovieDetails.trailers.size());
-//
-//        // Creates a TextView for each trailer
-//        // Get the layout we want to load our views into
-//        LinearLayout ll = (LinearLayout) mRootView.findViewById(R.id.detail_fragment_trailers);
-//        for (int ii = 0; ii < mMovieDetails.trailers.size(); ii++) {
-//            final String URL = mMovieDetails.trailers.get(ii).url;
-//            final String NAME = mMovieDetails.trailers.get(ii).name;
-//
-//            cv.clear();
-//            cv.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, rowId);
-//            cv.put(MovieContract.TrailerEntry.COLUMN_TRAILER_URL, URL);
-//            cv.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, NAME);
-//            trailerCCV.add(cv);
-
-//            // Add the view
-//            TextView trailer = (TextView) View.inflate(mContext, R.layout.trailer_link_view, null);
-//            trailer.setText(name);
-//
-//            // Set the onClick Listener to pull up the Youtube links
-//            trailer.setOnClickListener(new View.OnClickListener() {
-//                public void onClick(View v) {
-//                    Uri builtUri = Uri.parse(URL)
-//                            .buildUpon()
-//                            .build();
-//                    try {
-//                        Intent intent = new Intent(Intent.ACTION_VIEW, builtUri);
-//                        mContext.startActivity(intent);
-//                    } catch (ActivityNotFoundException ex) {
-//                        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW,
-//                                builtUri);
-//                        mContext.startActivity(youtubeIntent);
-//                    }
-//                }
-//            });
-//            ll.addView(trailer);
-//        }
-//        if (trailerCCV.size() > 0) {
-//            ContentValues[] cvArray = new ContentValues[trailerCCV.size()];
-//            trailerCCV.toArray(cvArray);
-//            mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, cvArray);
-//        }
-//
-//
-//        Vector<ContentValues> reviewCCV = new Vector<>(mMovieDetails.reviews.size());
-//
-//        // Creates a TextView for each review
-//        // Get the layout we want to load our views into
-//        ll = (LinearLayout) mRootView.findViewById(R.id.detail_fragment_reviews);
-//        for (int ii = 0; ii < mMovieDetails.reviews.size(); ii++) {
-//            Review review = mMovieDetails.reviews.get(ii);
-//            cv.clear();
-//            cv.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, rowId);
-//            cv.put(MovieContract.ReviewEntry.COLUMN_USER, review.author);
-//            cv.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, review.review);
-//            reviewCCV.add(cv);
-//
-//            LinearLayout reviewLayout = (LinearLayout) View.inflate(mContext, R.layout.review_view, null);
-//            ((TextView) reviewLayout.findViewById(R.id.detail_view_author_text_view)).setText(review.author);
-//            ((TextView) reviewLayout.findViewById(R.id.movie_review_text_view)).setText(review.review);
-//            ll.addView(reviewLayout);
-//        }
-//        if (reviewCCV.size() > 0) {
-//            ContentValues[] cvArray = new ContentValues[reviewCCV.size()];
-//            reviewCCV.toArray(cvArray);
-//            mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, cvArray);
-//        }
-//
-//        mRootView.scrollTo(0, 0);
-    }
-
-    /**
-     * Sets the view's text and images.
-     */
-    private void setDetailsView() {
+        // Update the movie entry with the length
         ContentValues cv = new ContentValues();
+        cv.put(MovieContract.MovieEntry._ID, rowId);
         cv.put(MovieContract.MovieEntry.COLUMN_LENGTH, mMovieDetails.runtime);
+
         int count = mContext.getContentResolver().update(
                 MovieContract.MovieEntry.CONTENT_URI,
                 cv,
-                MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = ",
-                new String[]{Long.toString(mMovieDbId)});
+                MovieContract.MovieEntry._ID + " = " + rowId,
+                null);
         if ((count == -1)) throw new AssertionError();
 
-//        TextView detail_title = (TextView) mRootView.findViewById(R.id.detail_fragment_title);
-//        ImageView detail_poster = (ImageView) mRootView.findViewById(R.id.detail_fragment_poster_image_view);
-//        TextView detail_year = (TextView) mRootView.findViewById(R.id.detail_fragment_year_text_view);
-//        TextView detail_length = (TextView) mRootView.findViewById(R.id.detail_fragment_movie_length_text_view);
-//        TextView detail_rating = (TextView) mRootView.findViewById(R.id.detail_fragment_rating_text_view);
-//        TextView detail_overview = (TextView) mRootView.findViewById(R.id.detail_fragment_overview);
+        if (count == 1)
+            mContext.getContentResolver().notifyChange(MovieContract.MovieEntry.CONTENT_URI, null);
+
+
+
+        /*---------------------------------
+         *Save the trailers
+         *-------------------------------*/
+        int newTrailers = 0;
+//        for (Trailer trailer : mMovieDetails.trailers) {
 //
-//        if (mMovieDetails.title != null)
-//            detail_title.setText(mMovieDetails.title);
-//        if (mMovieDetails.posterUrl != null)
-//            Picasso.with(mContext).load(mMovieDetails.posterUrl).into(detail_poster);
-//        int strLen = mMovieDetails.releaseDate.length();
-//        if (strLen >= 4)
-//            detail_year.setText(mMovieDetails.releaseDate.substring(0, 4));
-//        else
-//            detail_year.setText(mMovieDetails.releaseDate.substring(0, strLen));
-//        detail_length.setText(mMovieDetails.runtime);
-//        detail_rating.setText(mMovieDetails.rating);
-//        detail_overview.setText(mMovieDetails.overview);
+//            ContentValues trailerValues = new ContentValues();
+//            trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, rowId);
+//            trailerValues.put(MovieContract.TrailerEntry.COLUMN_TRAILER_URL, trailer.url);
+//            trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, trailer.name);
+//
+//            Cursor trailerCursor = mContext.getContentResolver().query(
+//                    MovieContract.TrailerEntry.CONTENT_URI,
+//                    new String[]{MovieContract.TrailerEntry._ID},
+//                    MovieContract.TrailerEntry.COLUMN_TRAILER_URL + " = ?",
+//                    new String[]{trailer.url},
+//                    null
+//            );
+//            if (trailerCursor != null) {
+//                mContext.getContentResolver().insert(MovieContract.TrailerEntry.CONTENT_URI, trailerValues);
+//                newTrailers++;
+//                trailerCursor.close();
+//            }
+//
+//        }
+        if (newTrailers > 0)
+            mContext.getContentResolver().notifyChange(MovieContract.TrailerEntry.CONTENT_URI, null);
+
+        /*---------------------------------
+         *Save the reviews
+         *-------------------------------*/
+        int newReviews = 0;
+//        for (Review review : mMovieDetails.reviews) {
+//            ContentValues reviewValues = new ContentValues();
+//            reviewValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, rowId);
+//            reviewValues.put(MovieContract.ReviewEntry.COLUMN_USER, review.author);
+//            reviewValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, review.review);
+//
+//            Cursor reviewCursor = mContext.getContentResolver().query(
+//                    MovieContract.ReviewEntry.CONTENT_URI,
+//                    new String[]{MovieContract.ReviewEntry._ID},
+//                    MovieContract.ReviewEntry.COLUMN_DESCRIPTION + " = ?",
+//                    new String[]{review.review},
+//                    null
+//            );
+//            if (reviewCursor != null) {
+//                mContext.getContentResolver().insert(MovieContract.ReviewEntry.CONTENT_URI, reviewValues);
+//                newReviews++;
+//                reviewCursor.close();
+//            }
+//        }
+        if (newReviews > 0)
+            mContext.getContentResolver().notifyChange(MovieContract.ReviewEntry.CONTENT_URI, null);
+
+        // Return the JSON
+        return movieJsonObject;
     }
 
     /**
