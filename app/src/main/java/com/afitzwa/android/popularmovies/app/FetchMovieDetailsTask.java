@@ -27,9 +27,9 @@ import java.util.Vector;
 
 /**
  * Created by AndrewF on 11/13/2015.
- * <p>
+ * <p/>
  * Handles querying themoviedb.org for information related to a single movie.
- * <p>
+ * <p/>
  * Specifically gets the runtime and trailer links.
  */
 class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> {
@@ -110,7 +110,7 @@ class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> {
         );
 
         if (moviesCursor == null || !moviesCursor.moveToFirst())
-            throw new AssertionError("Trying get details for a movie that does not already exist!");
+            throw new RuntimeException("Trying get details for a movie that does not already exist!");
 
         int rowId = moviesCursor.getInt(COL_MOVIE_ID);
         moviesCursor.close();
@@ -127,64 +127,65 @@ class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> {
                 null);
         if ((count == -1)) throw new AssertionError();
 
-        if (count == 1)
-            mContext.getContentResolver().notifyChange(MovieContract.MovieEntry.CONTENT_URI, null);
-
 
 
         /*---------------------------------
          *Save the trailers
          *-------------------------------*/
-        int newTrailers = 0;
-//        for (Trailer trailer : mMovieDetails.trailers) {
-//
-//            ContentValues trailerValues = new ContentValues();
-//            trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, rowId);
-//            trailerValues.put(MovieContract.TrailerEntry.COLUMN_TRAILER_URL, trailer.url);
-//            trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, trailer.name);
-//
-//            Cursor trailerCursor = mContext.getContentResolver().query(
-//                    MovieContract.TrailerEntry.CONTENT_URI,
-//                    new String[]{MovieContract.TrailerEntry._ID},
-//                    MovieContract.TrailerEntry.COLUMN_TRAILER_URL + " = ?",
-//                    new String[]{trailer.url},
-//                    null
-//            );
-//            if (trailerCursor != null) {
-//                mContext.getContentResolver().insert(MovieContract.TrailerEntry.CONTENT_URI, trailerValues);
-//                newTrailers++;
-//                trailerCursor.close();
-//            }
-//
-//        }
-        if (newTrailers > 0)
-            mContext.getContentResolver().notifyChange(MovieContract.TrailerEntry.CONTENT_URI, null);
+        Vector<ContentValues> trailersCVVector = new Vector<>();
+        for (Trailer trailer : mMovieDetails.trailers) {
+
+            ContentValues trailerValues = new ContentValues();
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, rowId);
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_TRAILER_URL, trailer.url);
+            trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, trailer.name);
+
+            Cursor trailerCursor = mContext.getContentResolver().query(
+                    MovieContract.TrailerEntry.CONTENT_URI,
+                    new String[]{MovieContract.TrailerEntry._ID},
+                    MovieContract.TrailerEntry.COLUMN_TRAILER_URL + " = ?",
+                    new String[]{trailer.url},
+                    null
+            );
+            if (trailerCursor != null) {
+                trailerCursor.close();
+                trailersCVVector.add(trailerValues);
+            }
+
+        }
+        if (trailersCVVector.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[trailersCVVector.size()];
+            trailersCVVector.toArray(cvArray);
+            mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, cvArray);
+        }
 
         /*---------------------------------
          *Save the reviews
          *-------------------------------*/
-        int newReviews = 0;
-//        for (Review review : mMovieDetails.reviews) {
-//            ContentValues reviewValues = new ContentValues();
-//            reviewValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, rowId);
-//            reviewValues.put(MovieContract.ReviewEntry.COLUMN_USER, review.author);
-//            reviewValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, review.review);
-//
-//            Cursor reviewCursor = mContext.getContentResolver().query(
-//                    MovieContract.ReviewEntry.CONTENT_URI,
-//                    new String[]{MovieContract.ReviewEntry._ID},
-//                    MovieContract.ReviewEntry.COLUMN_DESCRIPTION + " = ?",
-//                    new String[]{review.review},
-//                    null
-//            );
-//            if (reviewCursor != null) {
-//                mContext.getContentResolver().insert(MovieContract.ReviewEntry.CONTENT_URI, reviewValues);
-//                newReviews++;
-//                reviewCursor.close();
-//            }
-//        }
-        if (newReviews > 0)
-            mContext.getContentResolver().notifyChange(MovieContract.ReviewEntry.CONTENT_URI, null);
+        Vector<ContentValues> reviewsCVVector = new Vector<>();
+        for (Review review : mMovieDetails.reviews) {
+            ContentValues reviewValues = new ContentValues();
+            reviewValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, rowId);
+            reviewValues.put(MovieContract.ReviewEntry.COLUMN_USER, review.author);
+            reviewValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, review.review);
+
+            Cursor reviewCursor = mContext.getContentResolver().query(
+                    MovieContract.ReviewEntry.CONTENT_URI,
+                    new String[]{MovieContract.ReviewEntry._ID},
+                    MovieContract.ReviewEntry.COLUMN_DESCRIPTION + " = ?",
+                    new String[]{review.review},
+                    null
+            );
+            if (reviewCursor != null) {
+                reviewCursor.close();
+                reviewsCVVector.add(reviewValues);
+            }
+        }
+        if (reviewsCVVector.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[reviewsCVVector.size()];
+            reviewsCVVector.toArray(cvArray);
+            mContext.getContentResolver().bulkInsert(MovieContract.ReviewEntry.CONTENT_URI, cvArray);
+        }
 
         // Return the JSON
         return movieJsonObject;

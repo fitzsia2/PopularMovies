@@ -215,7 +215,6 @@ class FetchMoviesTask extends AsyncTask<Integer, Void, JSONArray> {
             movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, movieRating);
             movieValues.put(MovieContract.MovieEntry.COLUMN_DESCRIPTION, movieOverview);
             movieValues.put(MovieContract.MovieEntry.COLUMN_YEAR, movieReleaseDate);
-            movieValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, 0);
             Uri uri = mContext.getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, movieValues);
             rowId = ContentUris.parseId(uri);
         }

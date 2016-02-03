@@ -1,6 +1,7 @@
 package com.afitzwa.android.popularmovies.app;
 
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -30,6 +31,8 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
 
     public static final String MOVIE_URI = "movie uri";
     public static final String LOAD_FAVORITES = "favorites flag";
+    private static final String ADD_FAV = "Mark as favorite";
+    private static final String RM_FAV = "Remove from favorites";
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
 
     private TrailersAdapter mTrailerAdapter;
@@ -44,6 +47,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
     private AbsListView mTrailerListView;
     private AbsListView mReviewListView;
 
+    private boolean mIsAFavorite;
     private Uri mUri;
 
     // TODO
@@ -142,9 +146,11 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
                     null,
                     null);
             assert c != null;
-            if (c.moveToFirst())
-                mFetchMovieDetailsTask.execute(c.getLong(COL_MOVIE_DB_ID));
+            if (c.moveToFirst()) {
+                long movieDbId = c.getLong(COL_MOVIE_DB_ID);
                 c.close();
+                mFetchMovieDetailsTask.execute(movieDbId);
+            }
         }
         return fragmentView;
     }
@@ -162,30 +168,21 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
     public void onClick(View v) {
         //TODO: Add functionality for saving movies
         Log.v(LOG_TAG, "Movie _id=" + MovieContract.MovieEntry.getMovieIdFromUri(mUri) + " added to favorites");
-    }
-
-    // Called on wide screen devices
-    public void updateDetailView(Uri uri) {
-        mUri = uri;
-
-        Log.v(LOG_TAG, "Reinitializing loaders");
-        LoaderManager lm = getLoaderManager();
-        lm.initLoader(MOVIES_LOADER, null, this);
-        lm.initLoader(TRAILERS_LOADER, null, this);
-        lm.initLoader(REVIEWS_LOADER, null, this);
-
-        String row = MovieContract.MovieEntry.getMovieIdFromUri(uri);
-        Cursor c = getContext().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
-                MOVIES_COLUMNS,
-                MovieContract.MovieEntry._ID + " = " + row,
-                null,
-                null);
-        if (c != null && c.moveToFirst()) {
-            long movieDbId = c.getLong(COL_MOVIE_DB_ID);
-            c.close();
-            mFetchMovieDetailsTask = new FetchMovieDetailsTask(getContext());
-            mFetchMovieDetailsTask.execute(movieDbId);
+        ContentValues newValues = new ContentValues();
+        if (mIsAFavorite) {
+            newValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, 0);
+            ((Button) v).setText(RM_FAV);
+        } else {
+            newValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, 1);
+            ((Button) v).setText(ADD_FAV);
         }
+        int cnt = getContext().getContentResolver().update(
+                MovieContract.MovieEntry.CONTENT_URI,
+                newValues,
+                MovieContract.MovieEntry._ID + " = ?",
+                new String[]{MovieContract.MovieEntry.getMovieIdFromUri(mUri)}
+        );
+        Log.d(LOG_TAG, "Updated " + cnt + " rows");
     }
 
     @Override
@@ -273,7 +270,8 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Lo
             mMovieRatingView.setText(c.getString(COL_MOVIE_RATING));
 
             // Set the text of the favorites button
-            String buttonText = (c.getInt(COL_MOVIE_FAVORITE) > 0) ? "Mark as favorite" : "Remove from favorites";
+            mIsAFavorite = (c.getInt(COL_MOVIE_FAVORITE) == 1);
+            String buttonText = mIsAFavorite ? RM_FAV : ADD_FAV;
             mFavoriteButton.setText(buttonText);
 
             // Set the length

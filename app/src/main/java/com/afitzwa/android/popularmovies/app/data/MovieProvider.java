@@ -321,7 +321,8 @@ public class MovieProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                break;
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
             case TRAILERS:
                 db.beginTransaction();
                 try {
@@ -335,7 +336,8 @@ public class MovieProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                break;
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
             case REVIEWS:
                 db.beginTransaction();
                 try {
@@ -349,11 +351,11 @@ public class MovieProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                break;
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
             default:
                 return super.bulkInsert(uri, values);
         }
-        return returnCount;
     }
 
     @Override
@@ -379,9 +381,7 @@ public class MovieProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
         if (rowsDeleted != 0) {
-            Context context = getContext();
-            Assert.assertNotNull(context);
-            context.getContentResolver().notifyChange(uri, null);
+            getContext().getContentResolver().notifyChange(uri, null);
         }
         return rowsDeleted;
     }
@@ -405,9 +405,7 @@ public class MovieProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
         if (rowsUpdated != 0) {
-            Context context = getContext();
-            Assert.assertNotNull(context);
-            context.getContentResolver().notifyChange(uri, null);
+            getContext().getContentResolver().notifyChange(uri, null);
         }
         return rowsUpdated;
     }
