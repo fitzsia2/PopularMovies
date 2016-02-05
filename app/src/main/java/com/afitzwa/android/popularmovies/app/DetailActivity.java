@@ -15,8 +15,8 @@ public class DetailActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
 
             Bundle arguments = new Bundle();
-            arguments.putParcelable(DetailFragment.MOVIE_URI,
-                    getIntent().getParcelableExtra(DetailFragment.MOVIE_URI));
+            Long l = getIntent().getLongExtra(DetailFragment.MOVIE_DB_ID, 0);
+            arguments.putLong(DetailFragment.MOVIE_DB_ID, l);
 
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(arguments);

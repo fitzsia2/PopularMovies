@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 /**
@@ -14,21 +13,32 @@ import android.widget.TextView;
  */
 public class ReviewsAdapter extends CursorAdapter {
 
-    public ReviewsAdapter(Context context, Cursor c, int flags) {
-        super(context, c, flags);
+    public static class ViewHolder {
+        public final TextView authorTextView;
+        public final TextView reviewTextView;
+
+        public ViewHolder(View view) {
+            authorTextView = (TextView) view.findViewById(R.id.detail_fragment_review_author_text_view);
+            reviewTextView = (TextView) view.findViewById(R.id.detail_fragment_review_text_view);
+        }
+    }
+
+    public ReviewsAdapter(Context context) {
+        super(context, null, 0);
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        return LayoutInflater.from(context).inflate(R.layout.review_view, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.review_view, parent, false);
+        ViewHolder viewHolder = new ViewHolder(view);
+        view.setTag(viewHolder);
+        return view;
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        LinearLayout ll = (LinearLayout) view.findViewById(R.id.movie_review_layout);
-        TextView author = (TextView) ll.findViewById(R.id.detail_view_author_text_view);
-        author.setText(cursor.getString(DetailFragment.COL_REVIEW_USER));
-        TextView movieDescription = (TextView) ll.findViewById(R.id.movie_review_text_view);
-        movieDescription.setText(cursor.getString(DetailFragment.COL_REVIEW_DESCRIPTION));
+        ViewHolder viewHolder = (ViewHolder) view.getTag();
+        viewHolder.authorTextView.setText(cursor.getString(DetailFragment.COL_REVIEW_USER));
+        viewHolder.reviewTextView.setText(cursor.getString(DetailFragment.COL_REVIEW_DESCRIPTION));
     }
 }

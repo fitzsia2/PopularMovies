@@ -134,10 +134,11 @@
             android:text="@string/detail_trailer_header_text"
             android:textSize="24sp" />
 
-        <ListView
-            android:id="@+id/trailers_list_view"
+        <LinearLayout
+            android:id="@+id/detail_fragment_trailers_linear_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:padding="16dp"
             tools:layout="@layout/trailer_link_view" />
 
@@ -148,10 +149,11 @@
             android:text="@string/detail_review_header_text"
             android:textSize="24sp" />
 
-        <ListView
-            android:id="@+id/reviews_list_view"
+        <LinearLayout
+            android:id="@+id/detail_fragment_reviews_linear_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:padding="16dp"
             tools:layout="@layout/review_view" />
     </LinearLayout>

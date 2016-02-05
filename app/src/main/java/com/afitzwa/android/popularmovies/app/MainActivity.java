@@ -1,7 +1,6 @@
 package com.afitzwa.android.popularmovies.app;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
@@ -26,12 +25,9 @@ public class MainActivity extends AppCompatActivity
     private static MoviesFragment mMoviesFragment = null;
     private static DetailFragment mDetailFragment = null;
 
-    private boolean mIsDetailVisible = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        deleteDatabase(MovieDbHelper.DATABASE_NAME);
         PreferenceManager.setDefaultValues(this, R.xml.pref_movies, false);
 
         // Our XML will inflate the fragment_posters into our main activity
@@ -39,7 +35,7 @@ public class MainActivity extends AppCompatActivity
 
         // Find the Movies fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
-        mMoviesFragment = (MoviesFragment) fragmentManager.findFragmentById(R.id.fragment_posters);
+        mMoviesFragment = (MoviesFragment) fragmentManager.findFragmentById(R.id.fragment_movies);
         mMoviesFragment.setOnMovieSelectedListener(this);
 
         // If we find the movie_details_container in our view, we're running in a two-pane mode
@@ -72,14 +68,14 @@ public class MainActivity extends AppCompatActivity
     /**
      * Starts the detail activity, or update the detail fragment on wider screen devices.
      */
-    public void onMovieSelected(Uri uri) {
-        Log.v(LOG_TAG, "onMovieSelected::" + uri.toString());
+    public void onMovieSelected(Long movieDbId) {
+        Log.v(LOG_TAG, "onMovieSelected::" + movieDbId.toString());
         if (mTwoPane) {
             // Bring it into visibility
             findViewById(R.id.movie_details_container).setVisibility(View.VISIBLE);
 
             Bundle args = new Bundle();
-            args.putParcelable(DetailFragment.MOVIE_URI, uri);
+            args.putLong(DetailFragment.MOVIE_DB_ID, movieDbId);
             DetailFragment df = new DetailFragment();
             df.setArguments(args);
             getSupportFragmentManager().beginTransaction()
@@ -91,7 +87,7 @@ public class MainActivity extends AppCompatActivity
             gridView.setNumColumns(3);
         } else {
             Intent intent = new Intent(this, DetailActivity.class)
-                    .putExtra(DetailFragment.MOVIE_URI, uri);
+                    .putExtra(DetailFragment.MOVIE_DB_ID, movieDbId);
             startActivity(intent);
         }
 

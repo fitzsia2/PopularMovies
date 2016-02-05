@@ -17,8 +17,8 @@ import android.widget.TextView;
 public class TrailersAdapter extends CursorAdapter {
     Context mContext;
 
-    public TrailersAdapter(Context context, Cursor c, int flags) {
-        super(context, c, flags);
+    public TrailersAdapter(Context context) {
+        super(context, null, 0);
         mContext = context;
     }
 

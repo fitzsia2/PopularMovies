@@ -2,13 +2,8 @@ package com.afitzwa.android.popularmovies.app;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,10 +15,9 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.afitzwa.android.popularmovies.app.data.MovieContract;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -32,29 +26,17 @@ import java.util.List;
  * to handle interaction events.
  */
 public class MoviesFragment extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+        implements FetchMoviesTask.Callback {
     private static final String LOG_TAG = MoviesFragment.class.getSimpleName();
 
     private PosterAdapter mPosterAdapter;
-
-    private static final int MOVIES_LOADER = 0;
-    private static final String[] MOVIES_COLUMNS = {
-            MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry._ID,
-            MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID,
-            MovieContract.MovieEntry.COLUMN_TITLE,
-            MovieContract.MovieEntry.COLUMN_POSTER_URL
-    };
-    static final int COL_ID = 0;
-    static final int COL_MOVIE_DB_ID = 1;
-    static final int COL_MOVIE_TITLE = 2;
-    static final int COL_MOVIE_POSTER_URL = 3;
 
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p/>
+     * <p>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
@@ -84,7 +66,6 @@ public class MoviesFragment extends Fragment
     public void onActivityCreated(Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onActivityCreated()");
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(MOVIES_LOADER, null, this);
     }
 
     @Override
@@ -100,7 +81,7 @@ public class MoviesFragment extends Fragment
                              Bundle savedInstanceState) {
         Log.v(LOG_TAG, "onCreateView()");
 
-        mPosterAdapter = new PosterAdapter(getActivity(), null, 0);
+        mPosterAdapter = new PosterAdapter(getContext(), new ArrayList<MovieInfo>());
 
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_movies, container, false);
@@ -112,15 +93,10 @@ public class MoviesFragment extends Fragment
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                // CursorAdapter returns a cursor at the correct position for getItem(), or null
-                // if it cannot seek to that position.
-                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                  if (cursor != null) {
-                    cursor.moveToPosition(position);
-                    ((OnMovieSelectedListener) getActivity())
-                            .onMovieSelected(MovieContract.MovieEntry.buildMovieUriWithMovie(cursor.getLong(COL_ID)));
-                    Log.v(LOG_TAG, "Clicked movie with _id=" + cursor.getLong(COL_ID));
-                }
+                MovieInfo movieInfo = (MovieInfo) adapterView.getItemAtPosition(position);
+                ((OnMovieSelectedListener) getActivity())
+                        .onMovieSelected(movieInfo.movieDbId);
+                Log.v(LOG_TAG, "Clicked movie with _id=" + movieInfo.movieDbId);
                 mPosition = position;
             }
         });
@@ -128,6 +104,8 @@ public class MoviesFragment extends Fragment
 
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        } else {
+//            Log.d(LOG_TAG, "Could not get position key :(");
         }
 
         return view;
@@ -147,11 +125,11 @@ public class MoviesFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        // If favorites => populate views using a loader
-        // else => need to load from themoviedb.org
         if (mReloadOnResume) {
-            mPosterAdapter.swapCursor(null);
+            mReloadOnResume = false;
+            mPosterAdapter.clear();
             FetchMoviesTask moviesTask = new FetchMoviesTask(getContext());
+            moviesTask.setCallBackCaller(this);
             moviesTask.execute(1);
         }
     }
@@ -169,11 +147,15 @@ public class MoviesFragment extends Fragment
             Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
             startActivity(settingsIntent);
             return true;
+        } else if (id == R.id.action_favorites) {
+//            Intent favoritesIntent = new Intent(getActivity(), FavoriteMoviesActivity.class);
+//            startActivity(favoritesIntent);
+//            return true;
         }
-
         /* TODO Add a button for viewing favorites
            This will launch a favorites activity+fragment
            */
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -187,6 +169,7 @@ public class MoviesFragment extends Fragment
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (mPosition != ListView.INVALID_POSITION) {
+//            Log.d(LOG_TAG, "Saving instance state with position " + mPosition);
             outState.putInt(SELECTED_KEY, mPosition);
         }
     }
@@ -194,37 +177,23 @@ public class MoviesFragment extends Fragment
     /*--------------------------------------------
         Interface methods
      -------------------------------------------*/
+    // Communicate with activity
     public void setOnMovieSelectedListener(OnMovieSelectedListener listener) {
         mMovieSelectedListener = listener;
     }
 
+    // Communicate with activity
     public interface OnMovieSelectedListener {
-        void onMovieSelected(Uri uri);
+        void onMovieSelected(Long movieDbId);
     }
 
-    /*--------------------------------------------
-        Loader Callbacks
-     -------------------------------------------*/
+    // Receive data from FetchMoviesTask
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(
-                getActivity(),
-                MovieContract.MovieEntry.CONTENT_URI,
-                MOVIES_COLUMNS,
-                null,
-                null,
-                null);
-    }
-
-    @Override
-    public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor data) {
-        mPosterAdapter.swapCursor(data);
-        if (mPosition != ListView.INVALID_POSITION)
+    public void loadedDetails(Vector<MovieInfo> movieInfoVector) {
+        for (MovieInfo movieInfo : movieInfoVector) {
+            mPosterAdapter.add(movieInfo);
+        }
+        if(mPosition != ListView.INVALID_POSITION)
             mListView.smoothScrollToPosition(mPosition);
-    }
-
-    @Override
-    public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
-        mPosterAdapter.swapCursor(null);
     }
 }

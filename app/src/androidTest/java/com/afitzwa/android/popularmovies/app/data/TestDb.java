@@ -65,7 +65,6 @@ public class TestDb extends AndroidTestCase {
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_LENGTH);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_RATING);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_DESCRIPTION);
-        movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_FAVORITE);
         movieColumnHashSet.add(MovieContract.MovieEntry.COLUMN_POSTER_URL);
 
         int columnNameIndex = c.getColumnIndex("name");
@@ -73,6 +72,7 @@ public class TestDb extends AndroidTestCase {
             String columnName = c.getString(columnNameIndex);
             movieColumnHashSet.remove(columnName);
         } while (c.moveToNext());
+        c.close();
 
         // if this fails, it means that your database doesn't contain all of the required location
         // entry columns
@@ -97,6 +97,7 @@ public class TestDb extends AndroidTestCase {
             String columnName = c.getString(columnNameIndex);
             trailerColumnHashSet.remove(columnName);
         } while (c.moveToNext());
+        c.close();
 
         // if this fails, it means that your database doesn't contain all of the required location
         // entry columns
@@ -122,6 +123,7 @@ public class TestDb extends AndroidTestCase {
             String columnName = c.getString(columnNameIndex);
             reviewColumnHashSet.remove(columnName);
         } while (c.moveToNext());
+        c.close();
 
         // if this fails, it means that your database doesn't contain all of the required location
         // entry columns

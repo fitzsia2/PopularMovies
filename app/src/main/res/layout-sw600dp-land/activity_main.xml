@@ -9,7 +9,7 @@
     tools:context=".MainActivity">
 
     <fragment
-        android:id="@+id/fragment_posters"
+        android:id="@+id/fragment_movies"
         android:name="com.afitzwa.android.popularmovies.app.MoviesFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"

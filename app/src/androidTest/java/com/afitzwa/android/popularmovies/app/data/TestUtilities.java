@@ -57,7 +57,6 @@ public class TestUtilities extends AndroidTestCase {
         movieValues.put(MovieContract.MovieEntry.COLUMN_LENGTH, 81);
         movieValues.put(MovieContract.MovieEntry.COLUMN_DESCRIPTION, "She talks to someone. Someone meets somebody.");
         movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_URL, "www.google.com");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, false);
         movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, "2");
         return movieValues;
     }
@@ -70,7 +69,6 @@ public class TestUtilities extends AndroidTestCase {
         movieValues.put(MovieContract.MovieEntry.COLUMN_LENGTH, 90);
         movieValues.put(MovieContract.MovieEntry.COLUMN_DESCRIPTION, "He talks to someone. Somebody meets someone.");
         movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_URL, "www.bing.com");
-        movieValues.put(MovieContract.MovieEntry.COLUMN_FAVORITE, false);
         movieValues.put(MovieContract.MovieEntry.COLUMN_RATING, "3");
         return movieValues;
     }

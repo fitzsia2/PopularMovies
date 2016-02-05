@@ -23,7 +23,7 @@
 
         <!-- AUTHOR -->
         <TextView
-            android:id="@+id/detail_view_author_text_view"
+            android:id="@+id/detail_fragment_review_author_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-light"
@@ -34,7 +34,7 @@
 
     <!-- REVIEW -->
     <TextView
-        android:id="@+id/movie_review_text_view"
+        android:id="@+id/detail_fragment_review_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:text="In Stage 2, you will go one step further and allow the user to view movie trailers, read reviews, and select favorites." />

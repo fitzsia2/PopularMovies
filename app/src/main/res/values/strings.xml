@@ -4,6 +4,7 @@
     <string name="test2_string">Test 2</string>
     <string name="action_settings">Settings</string>
     <string name="action_sort_by">Sort By</string>
+    <string name="action_favorites">Favorites</string>
 
     <string name="poster_width_92">w92</string>
     <string name="poster_width_154">w154</string>

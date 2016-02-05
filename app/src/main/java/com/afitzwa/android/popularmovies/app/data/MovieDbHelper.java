@@ -13,7 +13,7 @@ import com.afitzwa.android.popularmovies.app.data.MovieContract.TrailerEntry;
  */
 public class MovieDbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 12;
     public static final String DATABASE_NAME = "movie.db";
 
     public MovieDbHelper(Context context) {
@@ -30,7 +30,6 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_YEAR + " INTEGER NOT NULL, " +
                 MovieEntry.COLUMN_LENGTH + " INTEGER, " +
                 MovieEntry.COLUMN_RATING + " TEXT NOT NULL, " +
-                MovieEntry.COLUMN_FAVORITE + " INT, " +
                 MovieEntry.COLUMN_DESCRIPTION + " TEXT NOT NULL" +
                 " );";
 
