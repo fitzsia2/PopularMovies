@@ -20,6 +20,10 @@ public class MovieInfo {
         String mUrl;
         String mName;
 
+        /**
+         * @param desc Description of the trailer
+         * @param link to the youtube video
+         */
         public Trailer(String desc, String link) {
             mUrl = link;
             mName = desc;
@@ -30,15 +34,13 @@ public class MovieInfo {
         String mAuthor;
         String mReview;
 
+        /**
+         * @param author of the review
+         * @param review of the movie
+         */
         public Review(String author, String review) {
             mAuthor = author;
             mReview = review;
         }
-    }
-
-    /**
-     * Contains all the information needed by the task for a given movie.
-     */
-    public void MovieInfo() {
     }
 }

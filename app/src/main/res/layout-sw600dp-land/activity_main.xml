@@ -18,7 +18,6 @@
 
     <FrameLayout
         android:id="@+id/movie_details_container"
-        android:name="com.afitzwa.android.popularmovies.DetailFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"

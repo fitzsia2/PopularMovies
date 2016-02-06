@@ -7,18 +7,27 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.style.BulletSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.GridView;
 
-import com.afitzwa.android.popularmovies.app.data.MovieDbHelper;
-
 import junit.framework.Assert;
 
+/**
+ *
+ */
 public class MainActivity extends AppCompatActivity
         implements MoviesFragment.OnMovieSelectedListener {
+
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
-    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+
+    private static final String DF_TAG = "DF_TAG";
+
+    private boolean mIsFavorites = false;
+    private int mFragmentToLoad;
+
+    private static final String IS_FAVORITES_KEY = "is favorites";
 
     private boolean mTwoPane;
 
@@ -28,6 +37,17 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mIsFavorites = savedInstanceState.getBoolean(IS_FAVORITES_KEY, false);
+        }
+
+        if (mIsFavorites) {
+            mFragmentToLoad = R.id.fragment_favorite_movies;
+        } else {
+            mFragmentToLoad = R.id.fragment_movies;
+        }
+
         PreferenceManager.setDefaultValues(this, R.xml.pref_movies, false);
 
         // Our XML will inflate the fragment_posters into our main activity
@@ -45,17 +65,20 @@ public class MainActivity extends AppCompatActivity
             // If we're being restored from a previous state,
             // then we don't need to do anything and should return or else
             // we could end up with overlapping fragments.
-            if (savedInstanceState != null && mDetailFragment != null) {
+            if (mDetailFragment != null) {
                 return;
             }
 
-            // Create the detail fragment
+            // Create the detail fragment indicating whether it should load favorites.
             mDetailFragment = new DetailFragment();
+            Bundle args = new Bundle();
+            args.putBoolean(IS_FAVORITES_KEY, mIsFavorites);
+            mDetailFragment.setArguments(args);
 
             // Start the fragment transaction and add it to the view
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction
-                    .add(R.id.movie_details_container, mDetailFragment, DETAILFRAGMENT_TAG)
+                    .add(R.id.movie_details_container, mDetailFragment, DF_TAG)
                     .commit();
         } else {
             mTwoPane = false;
@@ -79,7 +102,7 @@ public class MainActivity extends AppCompatActivity
             DetailFragment df = new DetailFragment();
             df.setArguments(args);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.movie_details_container, df, DETAILFRAGMENT_TAG)
+                    .replace(R.id.movie_details_container, df, DF_TAG)
                     .commit();
 
             // Change number of columns in main view

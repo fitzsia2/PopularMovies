@@ -7,9 +7,9 @@ import android.support.v7.app.AppCompatActivity;
 import junit.framework.Assert;
 
 /**
- * Manages launching the detail activity
+ * Detail Activity for favorites
  */
-public class DetailActivity extends AppCompatActivity {
+public class FavoriteMovieDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,10 +18,10 @@ public class DetailActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
 
             Bundle arguments = new Bundle();
-            Long l = getIntent().getLongExtra(DetailFragment.MOVIE_DB_ID, 0);
-            arguments.putLong(DetailFragment.MOVIE_DB_ID, l);
+            Long l = getIntent().getLongExtra(FavoriteMovieDetailFragment.MOVIE_DB_ID, 0);
+            arguments.putLong(FavoriteMovieDetailFragment.MOVIE_DB_ID, l);
 
-            DetailFragment fragment = new DetailFragment();
+            FavoriteMovieDetailFragment fragment = new FavoriteMovieDetailFragment();
             fragment.setArguments(arguments);
 
             getSupportFragmentManager().beginTransaction()

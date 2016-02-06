@@ -162,7 +162,7 @@ class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> implements
             movieDetails.movieDbId = movieDetailsJson.getLong(MDB_ID);
             movieDetails.title = movieDetailsJson.getString(MDB_TITLE);
             movieDetails.posterUrl = movieDbImageBaseUrl + movieDetailsJson.getString(MDB_POSTER);
-            movieDetails.releaseDate = movieDetailsJson.getString(MDB_RELEASE).substring(0,3);
+            movieDetails.releaseDate = movieDetailsJson.getString(MDB_RELEASE).substring(0,4);
             movieDetails.runtime = movieDetailsJson.getString(MDB_LENGTH) + "min";
             movieDetails.overview = movieDetailsJson.getString(MDB_OVERVIEW);
             movieDetails.rating = movieDetailsJson.getString(MDB_RATING) + "/10";
@@ -204,9 +204,12 @@ class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> implements
 
                 obj = (JSONArray) trailersJson.get(key);
                 for (int ii = 0; ii < obj.length(); ii++) {
+                    final String YOUTUBE_LINK = "https://www.youtube.com/watch?";
+                    final String LINK_KEY = "v";
+                    String videoSource = obj.getJSONObject(ii).get("source").toString();
+                    String videoName = obj.getJSONObject(ii).get("name").toString();
                     // Get the trailer's name
-                    MovieInfo.Trailer trailer = new MovieInfo.Trailer(obj.getJSONObject(ii).get("name").toString(),
-                            obj.getJSONObject(ii).get("source").toString());
+                    MovieInfo.Trailer trailer = new MovieInfo.Trailer( videoName, getYoutubeUrl(videoSource));
                     trailerUrls.add(ii, trailer);
                 }
             }
@@ -215,5 +218,15 @@ class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> implements
         }
 
         return trailerUrls;
+
+    }
+
+    private String getYoutubeUrl(String source) {
+        final String YOUTUBE_LINK = "https://www.youtube.com/watch?";
+        final String LINK_KEY = "v";
+        Uri builtUri = Uri.parse(YOUTUBE_LINK).buildUpon()
+                .appendQueryParameter(LINK_KEY, source)
+                .build();
+        return builtUri.toString();
     }
 }

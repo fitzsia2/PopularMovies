@@ -51,6 +51,7 @@
                     android:layout_weight="1"
                     android:adjustViewBounds="true"
                     android:contentDescription="@string/content_description_movie_poster"
+                    android:minHeight="200dp"
                     android:paddingBottom="32dp"
                     android:paddingRight="32dp"
                     android:scaleType="centerCrop"

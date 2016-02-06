@@ -42,5 +42,7 @@
     <string name="review_author_alt_text_string">User: </string>
     <string name="detail_review_header_text">Reviews:</string>
     <string name="title_activity_detail">Details</string>
+    <string name="title_activity_favorites">Favorites</string>
+    <string name="title_activity_favorite_details">FavoriteDetails</string>
 
 </resources>

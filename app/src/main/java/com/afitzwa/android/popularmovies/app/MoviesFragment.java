@@ -148,9 +148,9 @@ public class MoviesFragment extends Fragment
             startActivity(settingsIntent);
             return true;
         } else if (id == R.id.action_favorites) {
-//            Intent favoritesIntent = new Intent(getActivity(), FavoriteMoviesActivity.class);
-//            startActivity(favoritesIntent);
-//            return true;
+            Intent favoritesIntent = new Intent(getActivity(), FavoriteMoviesActivity.class);
+            startActivity(favoritesIntent);
+            return true;
         }
         /* TODO Add a button for viewing favorites
            This will launch a favorites activity+fragment

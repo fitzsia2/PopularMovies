@@ -36,6 +36,24 @@
         </activity>
 
         <activity
+            android:name=".FavoriteMoviesActivity"
+            android:label="@string/title_activity_favorites"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.afitzwa.android.popularmovies.app.MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".FavoriteMovieDetailActivity"
+            android:label="@string/title_activity_favorite_details"
+            android:parentActivityName=".FavoriteMoviesActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.afitzwa.android.popularmovies.app.FavoriteMoviesActivity" />
+        </activity>
+
+        <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".MainActivity">
@@ -46,7 +64,8 @@
 
         <provider
             android:name=".data.MovieProvider"
-            android:authorities="com.afitzwa.android.popularmovies.app" />
+            android:authorities="com.afitzwa.android.popularmovies.app"
+            android:exported="false"/>
     </application>
 
 </manifest>
