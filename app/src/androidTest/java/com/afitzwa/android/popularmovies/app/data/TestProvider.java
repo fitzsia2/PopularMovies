@@ -19,7 +19,7 @@ import junit.framework.Assert;
 
 
 /**
- * Created by AndrewF on 1/22/2016.
+ * Test our data provider
  */
 public class TestProvider extends AndroidTestCase {
     public static final String LOG_TAG = TestProvider.class.getSimpleName();

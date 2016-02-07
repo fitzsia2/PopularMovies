@@ -7,7 +7,7 @@ import android.test.AndroidTestCase;
 import java.util.HashSet;
 
 /**
- * Created by AndrewF on 1/19/2016.
+ * Tests the database
  */
 public class TestDb extends AndroidTestCase {
 

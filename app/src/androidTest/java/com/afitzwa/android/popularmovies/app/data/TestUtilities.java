@@ -17,7 +17,7 @@ import java.util.Set;
 
 
 /**
- * Created by AndrewF on 1/22/2016.
+ * General test utilities
  */
 public class TestUtilities extends AndroidTestCase {
     static final long TEST_MOVIE = 65432187;
