@@ -104,8 +104,6 @@ public class MoviesFragment extends Fragment
 
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
-        } else {
-//            Log.d(LOG_TAG, "Could not get position key :(");
         }
 
         return view;

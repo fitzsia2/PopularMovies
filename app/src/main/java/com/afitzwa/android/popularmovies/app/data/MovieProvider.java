@@ -11,12 +11,11 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import junit.framework.Assert;
 
 /**
- * Created by AndrewF on 1/14/2016.
+ * Data provider for our movies database
  */
 public class MovieProvider extends ContentProvider {
     private static final String LOG_TAG = MovieProvider.class.getSimpleName();
@@ -35,7 +34,6 @@ public class MovieProvider extends ContentProvider {
     static final int REVIEWS = 300;
 
     private static UriMatcher buildUriMatcher() {
-        Log.d(LOG_TAG, "buildUriMatcher");
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = MovieContract.CONTENT_AUTHORITY;
 
@@ -55,7 +53,6 @@ public class MovieProvider extends ContentProvider {
 
 
     private Cursor getMovieById(Uri uri, String[] projection, String sortOrder) {
-        Log.d(LOG_TAG, "getMovieById");
         String movieId = MovieContract.MovieEntry.getMovieIdFromUri(uri);
         return mOpenHelper.getReadableDatabase().query(
                 MovieContract.MovieEntry.TABLE_NAME,
@@ -91,7 +88,6 @@ public class MovieProvider extends ContentProvider {
                     "." + MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID + " = ? ";
 
     private Cursor getMovieWithTrailers(Uri uri, String[] projection, String sortOrder) {
-        Log.d(LOG_TAG, "getMovieWithTrailers");
         String movieId = MovieContract.MovieEntry.getMovieIdFromUri(uri);
         String[] selectionArgs = new String[]{movieId};
         String selection = sMovieSelection;
@@ -125,7 +121,6 @@ public class MovieProvider extends ContentProvider {
 
     // reviews.movie_key
     private Cursor getMovieWithReviews(Uri uri, String[] projection, String sortOrder) {
-        Log.d(LOG_TAG, "getMovieWithReviews");
         String movieId = MovieContract.MovieEntry.getMovieIdFromUri(uri);
         String[] selectionArgs = new String[]{movieId};
         String selection = sMovieSelection;
@@ -143,7 +138,6 @@ public class MovieProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        Log.d(LOG_TAG, "onCreate");
         mOpenHelper = new MovieDbHelper(getContext());
         return true;
     }
@@ -152,7 +146,6 @@ public class MovieProvider extends ContentProvider {
     @Override
     public String getType(@NonNull Uri uri) {
         final int match = sUriMatcher.match(uri);
-        Log.d(LOG_TAG, "getType");
         switch (match) {
             case MOVIES:
                 return MovieContract.MovieEntry.CONTENT_TYPE;
@@ -179,7 +172,6 @@ public class MovieProvider extends ContentProvider {
     @Override
     public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor retCursor;
-        Log.d(LOG_TAG, "query");
         switch (sUriMatcher.match(uri)) {
             // "movies"
             case MOVIES: {
@@ -272,10 +264,9 @@ public class MovieProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Uri insert(@NonNull Uri uri, @NonNull ContentValues values) {
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        Log.d(LOG_TAG, "insert");
         Uri returnUri;
 
         switch (match) {
@@ -316,7 +307,6 @@ public class MovieProvider extends ContentProvider {
     public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        Log.d(LOG_TAG, "bulkInsert");
         int returnCount = 0;
         switch (match) {
             case MOVIES:
@@ -364,7 +354,7 @@ public class MovieProvider extends ContentProvider {
             default:
                 return super.bulkInsert(uri, values);
         }
-        if(returnCount > 0)
+        if (returnCount > 0)
             getContext().getContentResolver().notifyChange(uri, null);
         return returnCount;
     }
@@ -373,7 +363,6 @@ public class MovieProvider extends ContentProvider {
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        Log.d(LOG_TAG, "delete");
         int rowsDeleted;
         if (null == selection) selection = "1";
         switch (match) {
@@ -399,10 +388,9 @@ public class MovieProvider extends ContentProvider {
     }
 
     @Override
-    public int update(@NonNull Uri uri, @NonNull ContentValues values, String selection, String[] selectionArgs) {
+    public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        Log.d(LOG_TAG, "update");
         int rowsUpdated;
         switch (match) {
             case MOVIES:
@@ -429,7 +417,6 @@ public class MovieProvider extends ContentProvider {
     @Override
     @TargetApi(11)
     public void shutdown() {
-        Log.d(LOG_TAG, "shutdown");
         mOpenHelper.close();
         super.shutdown();
     }

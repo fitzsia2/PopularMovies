@@ -41,16 +41,11 @@ public class FavoriteMoviesFragment extends Fragment implements LoaderManager.Lo
     static final int MOVIE_COL_TITLE = 1;
     static final int MOVIE_COL_DB_ID = 2;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_favorite_movies_list, container, false);
-        mFavoritesPosterAdapter = new FavoritesPosterAdapter(getContext(), null, 0);
+        mFavoritesPosterAdapter = new FavoritesPosterAdapter(getContext());
         mListView = (AbsListView) view.findViewById(R.id.favorites_list);
         mListView.setAdapter(mFavoritesPosterAdapter);
 

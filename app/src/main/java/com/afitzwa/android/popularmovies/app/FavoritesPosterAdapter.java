@@ -13,8 +13,8 @@ import android.widget.TextView;
  */
 public class FavoritesPosterAdapter extends CursorAdapter {
 
-    public FavoritesPosterAdapter(Context context, Cursor c, int flags) {
-        super(context, c, flags);
+    public FavoritesPosterAdapter(Context context) {
+        super(context, null, 0);
     }
 
     @Override

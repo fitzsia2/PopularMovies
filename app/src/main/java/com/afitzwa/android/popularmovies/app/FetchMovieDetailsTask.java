@@ -204,8 +204,6 @@ class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> implements
 
                 obj = (JSONArray) trailersJson.get(key);
                 for (int ii = 0; ii < obj.length(); ii++) {
-                    final String YOUTUBE_LINK = "https://www.youtube.com/watch?";
-                    final String LINK_KEY = "v";
                     String videoSource = obj.getJSONObject(ii).get("source").toString();
                     String videoName = obj.getJSONObject(ii).get("name").toString();
                     // Get the trailer's name

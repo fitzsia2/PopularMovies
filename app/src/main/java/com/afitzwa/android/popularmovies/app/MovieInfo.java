@@ -1,5 +1,6 @@
 package com.afitzwa.android.popularmovies.app;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,6 +16,11 @@ public class MovieInfo {
     String posterUrl;
     List<Trailer> trailers;
     List<Review> reviews;
+
+    public MovieInfo() {
+        trailers = new ArrayList<>();
+        reviews = new ArrayList<>();
+    }
 
     public static class Trailer {
         String mUrl;
@@ -42,5 +48,17 @@ public class MovieInfo {
             mAuthor = author;
             mReview = review;
         }
+    }
+
+    public void clear() {
+        movieDbId = null;
+        title = null;
+        releaseDate = null;
+        runtime = null;
+        rating = null;
+        overview = null;
+        posterUrl = null;
+        trailers.clear();
+        reviews.clear();
     }
 }

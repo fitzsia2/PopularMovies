@@ -4,15 +4,18 @@ package com.afitzwa.android.popularmovies.app;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -21,7 +24,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.afitzwa.android.popularmovies.app.data.MovieContract;
-import com.afitzwa.android.popularmovies.app.data.MovieDbHelper;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 
@@ -48,35 +50,17 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Fe
     private LinearLayout mTrailersLinearLayout;
     private LinearLayout mReviewsLinearLayout;
 
-    private MovieInfo mMovieInfo;
-
+    private long mMovieDbId;
     private boolean mIsAFavorite;
-    private Long mMovieDbId;
+    private MovieInfo mMovieInfo;
+    private ShareActionProvider mShareActionProvider;
 
     private static final String[] MOVIES_COLUMNS = {
             MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry._ID,
     };
 
-    private static final String[] TRAILER_COLUMNS = {
-            MovieContract.TrailerEntry.TABLE_NAME + "." + MovieContract.TrailerEntry._ID,
-            MovieContract.TrailerEntry.COLUMN_TRAILER_URL,
-            MovieContract.TrailerEntry.COLUMN_DESCRIPTION
-    };
-    static final int COL_TRAILER_URL = 1;
-    static final int COL_TRAILER_DESCRIPTION = 2;
-
-    private static final String[] REVIEWS_COLUMNS = {
-            MovieContract.ReviewEntry.TABLE_NAME + "." + MovieContract.ReviewEntry._ID,
-            MovieContract.ReviewEntry.COLUMN_USER,
-            MovieContract.ReviewEntry.COLUMN_DESCRIPTION
-    };
-    static final int COL_REVIEW_USER = 1;
-    static final int COL_REVIEW_DESCRIPTION = 2;
-
-    private FetchMovieDetailsTask mFetchMovieDetailsTask;
-
     public DetailFragment() {
-        // Required empty public constructor
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -85,6 +69,8 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Fe
         if (getArguments() != null) {
             // Get movie db Id from our arguments
             mMovieDbId = getArguments().getLong(MOVIE_DB_ID);
+        } else {
+            mMovieDbId = 0;
         }
     }
 
@@ -110,11 +96,28 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Fe
         // Setup our clickListener
         fragmentView.findViewById(R.id.detail_fragment_favorite_button).setOnClickListener(this);
 
-        Context context = getContext();
-        mFetchMovieDetailsTask = new FetchMovieDetailsTask(context);
-        mFetchMovieDetailsTask.setCallBackCaller(this);
-        mFetchMovieDetailsTask.execute(mMovieDbId);
+        // mMovieDbId will be 0 when we're loaded in two-pane mode. We won't be able to load
+        // details until the user has selected a movie. Make sure it is not visible.
+        if (mMovieDbId > 0) {
+            FetchMovieDetailsTask fmdt = new FetchMovieDetailsTask(getContext());
+            fmdt.setCallBackCaller(this);
+            fmdt.execute(mMovieDbId);
+        } else {
+            fragmentView = inflater.inflate(R.layout.empty_detail, container, false);
+        }
         return fragmentView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.detail, menu);
+
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
     }
 
     @Override
@@ -144,52 +147,38 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Fe
             movieCV.put(MovieContract.MovieEntry.COLUMN_LENGTH, mMovieInfo.runtime);
             movieCV.put(MovieContract.MovieEntry.COLUMN_RATING, mMovieInfo.rating);
             movieCV.put(MovieContract.MovieEntry.COLUMN_DESCRIPTION, mMovieInfo.overview);
-            SQLiteDatabase db = (new MovieDbHelper(getContext())).getWritableDatabase();
-
-            long moviesInserted = db.insert(MovieContract.MovieEntry.TABLE_NAME,
-                    null,
-                    movieCV);
-//            Log.d(LOG_TAG, "Inserted " + insertedUri + " into movies table");
+            getContext().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, movieCV);
+            long moviesInserted = 1;
 
             // Save the trailers info
-            long trailersInserted = 0;
+            long trailersInserted;
             Vector<ContentValues> trailerCVV = new Vector<>();
             for (MovieInfo.Trailer trailer : mMovieInfo.trailers) {
                 ContentValues trailerCV = new ContentValues();
                 trailerCV.put(MovieContract.TrailerEntry.COLUMN_MOVIE_KEY, mMovieInfo.movieDbId);
                 trailerCV.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, trailer.mName);
                 trailerCV.put(MovieContract.TrailerEntry.COLUMN_TRAILER_URL, trailer.mUrl);
-                trailersInserted = db.insert(MovieContract.TrailerEntry.TABLE_NAME,
-                        null,
-                        trailerCV);
                 trailerCVV.add(trailerCV);
             }
             ContentValues[] trailerCVA = new ContentValues[trailerCVV.size()];
             trailerCVV.toArray(trailerCVA);
-//            int trailersInserted = contentResolver.bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, trailerCVA);
-//            Log.d(LOG_TAG, "Inserted " + trailersInserted + " into trailers table");
+            trailersInserted = contentResolver.bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, trailerCVA);
 
             // Save the reviews info
-            long reviewsInserted = 0;
             Vector<ContentValues> reviewCVV = new Vector<>();
             for (MovieInfo.Review review : mMovieInfo.reviews) {
                 ContentValues reviewCV = new ContentValues();
                 reviewCV.put(MovieContract.ReviewEntry.COLUMN_MOVIE_KEY, mMovieInfo.movieDbId);
                 reviewCV.put(MovieContract.ReviewEntry.COLUMN_USER, review.mAuthor);
                 reviewCV.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, review.mReview);
-                reviewsInserted = db.insert(MovieContract.ReviewEntry.TABLE_NAME,
-                        null,
-                        reviewCV);
                 reviewCVV.add(reviewCV);
             }
             ContentValues[] reviewCVA = new ContentValues[reviewCVV.size()];
             reviewCVV.toArray(reviewCVA);
-//            int reviewsInserted = contentResolver.bulkInsert(MovieContract.ReviewEntry.CONTENT_URI, reviewCVA);
-//            Log.d(LOG_TAG, "Inserted " + reviewsInserted + " into reviews table");
+            int reviewsInserted = contentResolver.bulkInsert(MovieContract.ReviewEntry.CONTENT_URI, reviewCVA);
 
             Log.v(LOG_TAG, "Inserted " + moviesInserted + " movie row, " + trailersInserted + " trailer rows, " + reviewsInserted + " review rows");
             mIsAFavorite = true;
-            db.close();
         }
 
         if (mIsAFavorite) {
@@ -276,6 +265,11 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Fe
             ((TextView) reviewLinearLayout.findViewById(R.id.detail_fragment_review_author_text_view)).setText(review.mAuthor);
             ((TextView) reviewLinearLayout.findViewById(R.id.detail_fragment_review_text_view)).setText(review.mReview);
             mReviewsLinearLayout.addView(reviewLinearLayout);
+        }
+
+        // If onLoadFinished happens before this, we can go ahead and set the share intent now.
+        if (mMovieInfo != null && mMovieInfo.title != null) {
+            mShareActionProvider.setShareIntent(Utility.CreateShareMovieIntent(mMovieInfo));
         }
     }
 }

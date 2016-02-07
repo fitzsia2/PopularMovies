@@ -1,8 +1,7 @@
 <resources>
     <string name="app_name">Popular Movies</string>
-    <string name="test1_string">Test 1</string>
-    <string name="test2_string">Test 2</string>
     <string name="action_settings">Settings</string>
+    <string name="action_share">Share</string>
     <string name="action_sort_by">Sort By</string>
     <string name="action_favorites">Favorites</string>
 
@@ -14,7 +13,6 @@
     <string name="poster_width_original">original</string>
 
     <string name="add_favorite_button_text">Mark as favorite</string>
-    <string name="remove_favorite_button_text">Remove from favorites</string>
     <string name="detail_title_content_description_text">Movie Title</string>
     <string name="detail_trailer_header_text">Trailers:</string>
     <string name="detail_default_link_text"><![CDATA[<Trailer link here>]]></string>
@@ -34,9 +32,7 @@
         <item>Alphabetical</item>
         <item>User Rated</item>
     </string-array>
-    <string name="pref_sort_by_popular">Most Popular</string>
-    <string name="pref_sort_by_alphabetical">Alphabetical</string>
-    <string name="pref_sort_by_user_rated">User Rated</string>
+
     <string name="pref_sort_by_default">Most Popular</string>
     <string name="content_description_movie_poster">Movie Poster</string>
     <string name="review_author_alt_text_string">User: </string>

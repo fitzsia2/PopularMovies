@@ -5,8 +5,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.afitzwa.android.popularmovies.app.data.MovieContract;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,15 +25,6 @@ import java.util.Vector;
 class FetchMoviesTask extends AsyncTask<Integer, Void, Vector<MovieInfo>> {
     private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
     private Context mContext;
-
-
-    private static final String[] MOVIES_COLUMNS = {
-            MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry._ID,
-            MovieContract.MovieEntry.COLUMN_MOVIE_DB_ID
-    };
-    static final int COL_MOVIE_ID = 0;
-    static final int COL_MOVIE_DB_ID = 1;
-
 
     public FetchMoviesTask(Context context) {
         mContext = context;
@@ -138,9 +127,6 @@ class FetchMoviesTask extends AsyncTask<Integer, Void, Vector<MovieInfo>> {
         final String MDB_ID = "id";
         final String MDB_POSTER = "poster_path";
         final String MDB_TITLE = "title";
-        final String MDB_RATING = "vote_average";
-        final String MDB_OVERVIEW = "overview";
-        final String MDB_RELEASE_DATE = "release_date";
         final String MOVIE_BASE_IMG_URL = "https://image.tmdb.org/t/p/";
         final String MOVIE_IMG_WIDTH = "w342";
         final JSONObject movieJsonObj = new JSONObject(movieJsonStr);

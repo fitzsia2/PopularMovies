@@ -9,8 +9,8 @@
     tools:context=".MainActivity">
 
     <fragment
-        android:id="@+id/fragment_movies"
-        android:name="com.afitzwa.android.popularmovies.app.MoviesFragment"
+        android:id="@+id/fragment_favorite_movies"
+        android:name="com.afitzwa.android.popularmovies.app.FavoriteMoviesFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
@@ -21,7 +21,6 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        tools:context=".DetailActivity"
         tools:layout="@layout/fragment_detail" />
 
 </LinearLayout>
