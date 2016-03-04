@@ -8,6 +8,11 @@ new fragment presents the user with the title, release year, length, rating per
 themoviedb.org, a brief description of the plot, links to youtube trailers, and
 user reviews.
 
+The user is also able to keep a list of their favorite movies. The list is
+accessible via the action bar. Movies marked as a favorite will be saved to a 
+local database where their details can be viewed offline.
+
 ### Generating an APK
 You must add your own key for themoviedb.org's API. Add your key to the project
 level gradle.properties file.
+
