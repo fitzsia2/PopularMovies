@@ -99,7 +99,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener, Fe
         // mMovieDbId will be 0 when we're loaded in two-pane mode. We won't be able to load
         // details until the user has selected a movie. Make sure it is not visible.
         if (mMovieDbId > 0) {
-            FetchMovieDetailsTask fmdt = new FetchMovieDetailsTask(getContext());
+            FetchMovieDetailsTask fmdt = new FetchMovieDetailsTask();
             fmdt.setCallBackCaller(this);
             fmdt.execute(mMovieDbId);
         } else {

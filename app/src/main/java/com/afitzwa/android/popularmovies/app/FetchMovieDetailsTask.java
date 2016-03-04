@@ -32,16 +32,7 @@ import javax.security.auth.callback.Callback;
 class FetchMovieDetailsTask extends AsyncTask<Long, Void, JSONObject> implements Callback {
     private final String LOG_TAG = FetchMovieDetailsTask.class.getSimpleName();
 
-    /**
-     * Contains a name and url for a given trailer
-     */
-
-    private Context mContext;
-    private long mMovieDbId;
-
-    public FetchMovieDetailsTask(Context context) {
-        mContext = context;
-    }
+    public FetchMovieDetailsTask() {}
 
 
     /*--------------------------------------------
